@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المستفيدين - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>إدارة المستفيدين</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <button class="btn btn-primary" onclick="showAddBeneficiaryModal()"><i class="fas fa-plus"></i> إضافة مستفيد جديد</button>
+            <table class="data-table" id="beneficiariesTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الهوية</th>
+                        <th>الهاتف</th>
+                        <th>العنوان</th>
+                        <th>عدد أفراد الأسرة</th>
+                        <th>الحالة الصحية</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="beneficiariesBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addBeneficiaryModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>إضافة مستفيد جديد</h3>
+            <form id="addBeneficiaryForm">
+                <input type="hidden" id="beneficiaryId">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="benName" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهوية</label>
+                    <input type="text" id="benIdNumber" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" id="benPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" id="benAddress">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>عدد أفراد الأسرة</label>
+                        <input type="number" id="benFamily" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>الحالة الصحية</label>
+                        <input type="text" id="benHealth" placeholder="جيد - يحتاج رعاية - ...">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">إضافة</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/beneficiaries.js"></script>
+</body>
+</html>

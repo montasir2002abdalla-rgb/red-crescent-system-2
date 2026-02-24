@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير التبرعات - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>تقرير التبرعات</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <div class="report-filters">
+                <input type="text" id="searchDonations" placeholder="بحث...">
+                <select id="filterStatus">
+                    <option value="all">جميع التبرعات</option>
+                    <option value="pending">معلقة</option>
+                    <option value="completed">مكتملة</option>
+                </select>
+                <button class="btn btn-primary" onclick="printReport()">طباعة</button>
+            </div>
+            <table class="data-table" id="donationsReportTable">
+                <thead>
+                    <tr>
+                        <th>رقم</th>
+                        <th>المتبرع</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="donationsReportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const user = requireAuth(['manager', 'inventory_keeper']);
+        updateUserDisplay();
+
+        async function loadDonationsReport() {
+            try {
+                const donations = await getDonations();
+                const tbody = document.getElementById('donationsReportBody');
+                tbody.innerHTML = donations.map(d => `
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${d.donorName}</td>
+                        <td>${d.amount}</td>
+                        <td>${d.paymentMethod}</td>
+                        <td><span class="status ${d.status}">${d.status}</span></td>
+                        <td>${new Date(d.createdAt).toLocaleDateString('ar-EG')}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        loadDonationsReport();
+    </script>
+</body>
+</html>

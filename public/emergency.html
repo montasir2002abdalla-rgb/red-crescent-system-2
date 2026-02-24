@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فرق الطوارئ - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>فرق الطوارئ</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <button class="btn btn-primary" onclick="showAddTeamModal()"><i class="fas fa-plus"></i> إضافة فريق جديد</button>
+            <table class="data-table" id="teamsTable">
+                <thead>
+                    <tr>
+                        <th>اسم الفريق</th>
+                        <th>قائد الفريق</th>
+                        <th>الأعضاء</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="teamsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addTeamModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>إضافة فريق طوارئ</h3>
+            <form id="addTeamForm">
+                <div class="form-group">
+                    <label>اسم الفريق</label>
+                    <input type="text" id="teamName" required>
+                </div>
+                <div class="form-group">
+                    <label>قائد الفريق (اختر من المستخدمين)</label>
+                    <select id="leaderId" required>
+                        <option value="">اختر...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الأعضاء (أدخل أرقام المستخدمين مفصولة بفواصل)</label>
+                    <input type="text" id="members" placeholder="مثال: 2,5,8">
+                </div>
+                <button type="submit" class="btn btn-primary">إضافة</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/emergency.js"></script>
+</body>
+</html>

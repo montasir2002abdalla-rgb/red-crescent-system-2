@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير المستفيدين</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>تقرير المستفيدين</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+    <div class="container">
+        <div class="section-content">
+            <canvas id="beneficiariesChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('beneficiariesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['يناير', 'فبراير', 'مارس'],
+                datasets: [{
+                    label: 'عدد المستفيدين',
+                    data: [12, 19, 3],
+                    backgroundColor: 'rgba(107, 142, 35, 0.5)'
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

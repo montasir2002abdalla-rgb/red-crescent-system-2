@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جمعية الهلال الأحمر - نظام الإدارة</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo-container">
+            <div class="logo">
+                <div class="crescent"></div>
+            </div>
+            <h1>جمعية الهلال الأحمر</h1>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-content">
+                <h2>مرحباً بكم في نظام إدارة جمعية الهلال الأحمر</h2>
+                <p>نظام متكامل لإدارة العمليات الإنسانية والتطوعية</p>
+                <div class="welcome-buttons">
+                    <button class="btn btn-primary" onclick="showLogin()">تسجيل الدخول</button>
+                    <button class="btn btn-secondary" onclick="showRegister()">إنشاء حساب جديد</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container" id="loginForm" style="display: none;">
+            <div class="form-header">
+                <h2><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h2>
+                <button class="back-btn" onclick="showWelcome()"><i class="fas fa-arrow-right"></i> رجوع</button>
+            </div>
+            
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> الرقم الوظيفي</label>
+                    <input type="text" id="employeeId" required placeholder="أدخل الرقم الوظيفي">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <input type="password" id="password" required placeholder="********">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </button>
+                
+                <div class="form-footer">
+                    <p>ليس لديك حساب؟ <a href="#" onclick="showRegister()">إنشاء حساب جديد</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-container" id="registerForm" style="display: none;">
+            <div class="form-header">
+                <h2><i class="fas fa-user-plus"></i> إنشاء حساب جديد</h2>
+                <button class="back-btn" onclick="showWelcome()"><i class="fas fa-arrow-right"></i> رجوع</button>
+            </div>
+            
+            <form id="registerFormElement">
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> الرقم الوظيفي *</label>
+                    <input type="text" id="regEmployeeId" required placeholder="أدخل الرقم الوظيفي">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> الاسم الكامل *</label>
+                    <input type="text" id="fullName" required placeholder="محمد أحمد">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> البريد الإلكتروني *</label>
+                        <input type="email" id="email" required placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> رقم الهاتف *</label>
+                        <input type="tel" id="phone" required placeholder="09XXXXXXXX">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> كلمة المرور *</label>
+                        <input type="password" id="regPassword" required placeholder="********">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> تأكيد كلمة المرور *</label>
+                        <input type="password" id="confirmPassword" required placeholder="********">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user-tag"></i> نوع الحساب *</label>
+                    <select id="registerRole" required onchange="toggleRoleFields()">
+                        <option value="">اختر نوع الحساب</option>
+                        <option value="employee">موظف/متطوع</option>
+                        <option value="donor">مانح</option>
+                        <option value="beneficiary">مستفيد</option>
+                    </select>
+                </div>
+
+                <div id="employeeFields" class="role-fields" style="display: none;">
+                    <div class="form-group">
+                        <label>المؤهلات والخبرات</label>
+                        <textarea id="qualifications" placeholder="المؤهلات الدراسية والخبرات..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>الدافع للانضمام</label>
+                        <textarea id="motivation" placeholder="ما الذي يدفعك للانضمام؟"></textarea>
+                    </div>
+                </div>
+
+                <div id="donorFields" class="role-fields" style="display: none;">
+                    <div class="form-group">
+                        <label>نوع المانح</label>
+                        <select id="donorType">
+                            <option value="individual">فرد</option>
+                            <option value="company">شركة/مؤسسة</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="beneficiaryFields" class="role-fields" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>عدد أفراد الأسرة</label>
+                            <input type="number" id="familySize" min="1" max="15" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>المدينة</label>
+                            <input type="text" id="city" placeholder="المدينة">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="agreeTerms" required>
+                        أوافق على <a href="#">شروط الاستخدام</a> و <a href="#">سياسة الخصوصية</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> إنشاء الحساب
+                </button>
+                
+                <div class="form-footer">
+                    <p class="note">
+                        <i class="fas fa-info-circle"></i> ملاحظة: يتم مراجعة طلبات الموظفين والمتطوعين من قبل المدير.
+                    </p>
+                    <p>لديك حساب بالفعل؟ <a href="#" onclick="showLogin()">تسجيل الدخول</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>جمعية الهلال الأحمر</h4>
+                <p>منظمة إنسانية تطوعية تقدم المساعدات للمحتاجين</p>
+            </div>
+            <div class="footer-section">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="#" onclick="showWelcome()">الرئيسية</a></li>
+                    <li><a href="#" onclick="showLogin()">تسجيل الدخول</a></li>
+                    <li><a href="#" onclick="showRegister()">إنشاء حساب</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-phone"></i> 0912345678</p>
+                <p><i class="fas fa-envelope"></i> info@redcrescent.org</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 جمعية الهلال الأحمر. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        function showWelcome() {
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+
+        function showLogin() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+
+        function showRegister() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+
+        function toggleRoleFields() {
+            const role = document.getElementById('registerRole').value;
+            document.querySelectorAll('.role-fields').forEach(el => el.style.display = 'none');
+            if (role === 'employee') document.getElementById('employeeFields').style.display = 'block';
+            else if (role === 'donor') document.getElementById('donorFields').style.display = 'block';
+            else if (role === 'beneficiary') document.getElementById('beneficiaryFields').style.display = 'block';
+        }
+
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const employeeId = document.getElementById('employeeId').value;
+            const password = document.getElementById('password').value;
+            try {
+                const data = await login(employeeId, password);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            if (password !== confirm) {
+                alert('كلمتا المرور غير متطابقتين');
+                return;
+            }
+            const userData = {
+                employeeId: document.getElementById('regEmployeeId').value,
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                password: password,
+                role: document.getElementById('registerRole').value,
+                qualifications: document.getElementById('qualifications')?.value || '',
+                motivation: document.getElementById('motivation')?.value || '',
+                donorType: document.getElementById('donorType')?.value || '',
+                familySize: document.getElementById('familySize')?.value || 1,
+                city: document.getElementById('city')?.value || ''
+            };
+            try {
+                const result = await register(userData);
+                alert(result.message);
+                showLogin();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

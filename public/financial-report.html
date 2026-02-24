@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقرير المالي - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>التقرير المالي</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <div class="stats-container" style="grid-template-columns: repeat(3,1fr);">
+                <div class="stat-card" onclick="filterByType('income')" style="cursor: pointer;">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div class="count" id="totalIncome">0</div>
+                    <div class="label">إجمالي الإيرادات</div>
+                </div>
+                <div class="stat-card" onclick="filterByType('expense')" style="cursor: pointer;">
+                    <i class="fas fa-money-bill-alt"></i>
+                    <div class="count" id="totalExpenses">0</div>
+                    <div class="label">إجمالي المصروفات</div>
+                </div>
+                <div class="stat-card" onclick="showAll()" style="cursor: pointer;">
+                    <i class="fas fa-wallet"></i>
+                    <div class="count" id="totalBalance">0</div>
+                    <div class="label">إجمالي الرصيد</div>
+                </div>
+            </div>
+            <table class="data-table" id="financialReportTable">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>الوصف</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>المتبرع/المسؤول</th>
+                    </tr>
+                </thead>
+                <tbody id="financialReportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/financial-report.js"></script>
+</body>
+</html>

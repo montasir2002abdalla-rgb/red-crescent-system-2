@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير المخزون - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>تقرير المخزون</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <div class="report-filters">
+                <input type="text" id="searchInventory" placeholder="بحث...">
+                <button class="btn btn-primary" onclick="printReport()">طباعة</button>
+            </div>
+            <table class="data-table" id="inventoryReportTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>التصنيف</th>
+                        <th>الكمية</th>
+                        <th>الوحدة</th>
+                        <th>الحد الأدنى</th>
+                        <th>آخر تحديث</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryReportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const user = requireAuth(['manager', 'inventory_keeper']);
+        updateUserDisplay();
+
+        async function loadInventoryReport() {
+            try {
+                const items = await getInventory();
+                const tbody = document.getElementById('inventoryReportBody');
+                tbody.innerHTML = items.map(item => `
+                    <tr>
+                        <td>${item.itemName}</td>
+                        <td>${item.category}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.unit}</td>
+                        <td>${item.minStock}</td>
+                        <td>${new Date(item.lastUpdated).toLocaleDateString('ar-EG')}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        loadInventoryReport();
+    </script>
+</body>
+</html>

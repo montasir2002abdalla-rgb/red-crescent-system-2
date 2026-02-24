@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>السجلات الصحية - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>السجلات الصحية</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <div class="form-group">
+                <label>اختر المستفيد</label>
+                <select id="beneficiarySelect" onchange="loadHealthRecords()">
+                    <option value="">اختر...</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="showAddHealthModal()"><i class="fas fa-plus"></i> إضافة سجل صحي</button>
+            <table class="data-table" id="healthTable">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>التشخيص</th>
+                        <th>العلاج</th>
+                        <th>ملاحظات</th>
+                        <th>أضيف بواسطة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="healthBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addHealthModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>إضافة سجل صحي</h3>
+            <form id="addHealthForm">
+                <input type="hidden" id="healthRecordId">
+                <div class="form-group">
+                    <label>المستفيد</label>
+                    <select id="healthBeneficiaryId" required>
+                        <option value="">اختر...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>تاريخ التسجيل</label>
+                    <input type="date" id="recordDate" required value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                <div class="form-group">
+                    <label>التشخيص</label>
+                    <input type="text" id="diagnosis" required>
+                </div>
+                <div class="form-group">
+                    <label>العلاج</label>
+                    <textarea id="treatment" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات</label>
+                    <textarea id="healthNotes" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/health.js"></script>
+</body>
+</html>

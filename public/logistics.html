@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النقل واللوجستيات - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>النقل واللوجستيات</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <button class="btn btn-primary" onclick="showAddLogisticsModal()"><i class="fas fa-plus"></i> إنشاء مهمة نقل</button>
+            <table class="data-table" id="logisticsTable">
+                <thead>
+                    <tr>
+                        <th>الطلب المرتبط</th>
+                        <th>من</th>
+                        <th>إلى</th>
+                        <th>المسؤول</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="logisticsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addLogisticsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>مهمة نقل جديدة</h3>
+            <form id="addLogisticsForm">
+                <div class="form-group">
+                    <label>رقم طلب المساعدة</label>
+                    <input type="number" id="requestId">
+                </div>
+                <div class="form-group">
+                    <label>من (الموقع)</label>
+                    <input type="text" id="fromLocation" required>
+                </div>
+                <div class="form-group">
+                    <label>إلى (الموقع)</label>
+                    <input type="text" id="toLocation" required>
+                </div>
+                <div class="form-group">
+                    <label>المسؤول</label>
+                    <select id="assignedTo" required>
+                        <option value="">اختر المسؤول...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">إنشاء</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/logistics.js"></script>
+</body>
+</html>

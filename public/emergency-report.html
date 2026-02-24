@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير فرق الطوارئ - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>تقرير فرق الطوارئ</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <table class="data-table" id="emergencyReportTable">
+                <thead>
+                    <tr>
+                        <th>اسم الفريق</th>
+                        <th>قائد الفريق</th>
+                        <th>عدد الأعضاء</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإنشاء</th>
+                    </tr>
+                </thead>
+                <tbody id="emergencyReportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const user = requireAuth('manager');
+        updateUserDisplay();
+
+        async function loadEmergencyReport() {
+            try {
+                const teams = await getEmergencyTeams();
+                const tbody = document.getElementById('emergencyReportBody');
+                tbody.innerHTML = teams.map(t => {
+                    const members = t.members ? JSON.parse(t.members) : [];
+                    return `<tr>
+                        <td>${t.teamName}</td>
+                        <td>${t.leaderName || ''}</td>
+                        <td>${members.length}</td>
+                        <td><span class="status ${t.status}">${t.status}</span></td>
+                        <td>${new Date(t.createdAt).toLocaleDateString('ar-EG')}</td>
+                    </tr>`;
+                }).join('');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        loadEmergencyReport();
+    </script>
+</body>
+</html>

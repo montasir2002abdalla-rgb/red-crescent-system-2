@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلبات المساعدة - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>طلبات المساعدة</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <button class="btn btn-primary" onclick="showAddRequestModal()"><i class="fas fa-plus"></i> تقديم طلب جديد</button>
+            <table class="data-table" id="requestsTable">
+                <thead>
+                    <tr>
+                        <th>المستفيد</th>
+                        <th>نوع الطلب</th>
+                        <th>الوصف</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addRequestModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>تقديم طلب مساعدة</h3>
+            <form id="addRequestForm">
+                <div id="beneficiarySelectGroup" class="form-group">
+                    <label>اختر المستفيد</label>
+                    <select id="requestBeneficiaryId">
+                        <option value="">اختر...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نوع المساعدة</label>
+                    <select id="requestType" required>
+                        <option value="food">مواد غذائية</option>
+                        <option value="medical">رعاية صحية</option>
+                        <option value="shelter">إيواء</option>
+                        <option value="financial">مساعدات مالية</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>وصف الطلب</label>
+                    <textarea id="requestDescription" required rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">تقديم الطلب</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/requests.js"></script>
+</body>
+</html>

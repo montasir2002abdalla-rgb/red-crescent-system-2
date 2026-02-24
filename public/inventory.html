@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المخزون - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>إدارة المخزون</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <div class="user-menu" onclick="toggleUserMenu()">
+                <span id="userName">...</span>
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('items')">جميع المواد</button>
+                <button class="tab" onclick="showTab('medical')">الأدوية والمواد الصحية</button>
+                <button class="tab" onclick="showTab('financial')">الأموال</button>
+            </div>
+            <div id="itemsTab" class="tab-content active">
+                <h3>المواد المخزنية</h3>
+                <button class="btn btn-primary" onclick="showAddItemModal()"><i class="fas fa-plus"></i> إضافة مادة</button>
+                <table class="data-table" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>التصنيف</th>
+                            <th>الكمية</th>
+                            <th>الوحدة</th>
+                            <th>الحد الأدنى</th>
+                            <th>آخر تحديث</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+            <div id="medicalTab" class="tab-content">
+                <h3><i class="fas fa-pills"></i> الأدوية والمواد الصحية</h3>
+                <button class="btn btn-primary" onclick="showAddItemModal()"><i class="fas fa-plus"></i> إضافة صنف صحي</button>
+                <table class="data-table" id="medicalTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>التصنيف الفرعي</th>
+                            <th>الكمية</th>
+                            <th>الوحدة</th>
+                            <th>تاريخ انتهاء الصلاحية</th>
+                            <th>الحد الأدنى</th>
+                            <th>آخر تحديث</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicalBody"></tbody>
+                </table>
+            </div>
+            <div id="financialTab" class="tab-content">
+                <h3>المعاملات المالية</h3>
+                <button class="btn btn-primary" onclick="showExpenseModal()"><i class="fas fa-minus-circle"></i> تسجيل صرف</button>
+                <table class="data-table" id="financialTable">
+                    <thead>
+                        <tr>
+                            <th>المبلغ</th>
+                            <th>النوع</th>
+                            <th>الوصف</th>
+                            <th>المتبرع</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financialBody"></tbody>
+                </table>
+                <div class="total-funds" style="margin-top:20px; font-size:1.2rem;">
+                    <strong>إجمالي الأموال المتاحة: </strong>
+                    <span id="totalFunds">0</span> جنيه
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addItemModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>إضافة صنف جديد</h3>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label>اسم الصنف</label>
+                    <input type="text" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label>التصنيف الرئيسي</label>
+                    <select id="category" required>
+                        <option value="food">غذائية</option>
+                        <option value="medical">طبية / أدوية</option>
+                        <option value="shelter">إيواء</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group" id="subCategoryGroup" style="display: none;">
+                    <label>التصنيف الفرعي (للأدوية)</label>
+                    <select id="subCategory">
+                        <option value="medicine">دواء</option>
+                        <option value="disinfectant">مطهر</option>
+                        <option value="bandage">ضماد</option>
+                        <option value="equipment">معدات طبية</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input type="number" id="quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الوحدة</label>
+                        <input type="text" id="unit" placeholder="كيس/قطعة/علبة" required>
+                    </div>
+                </div>
+                <div class="form-group" id="expiryDateGroup" style="display: none;">
+                    <label>تاريخ انتهاء الصلاحية</label>
+                    <input type="date" id="expiryDate">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأدنى للتنبيه</label>
+                    <input type="number" id="minStock" value="0">
+                </div>
+                <button type="submit" class="btn btn-primary">إضافة</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="updateQuantityModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeUpdateModal()">&times;</span>
+            <h3>تحديث الكمية</h3>
+            <form id="updateQuantityForm">
+                <input type="hidden" id="updateItemId">
+                <div class="form-group">
+                    <label>الكمية الجديدة</label>
+                    <input type="number" id="newQuantity" required>
+                </div>
+                <button type="submit" class="btn btn-primary">تحديث</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeExpenseModal()">&times;</span>
+            <h3>تسجيل صرف مبلغ</h3>
+            <form id="expenseForm">
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <input type="number" id="expenseAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <input type="text" id="expenseDesc" required>
+                </div>
+                <button type="submit" class="btn btn-primary">تسجيل</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/inventory.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدعم المالي - الهلال الأحمر</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <div class="logo-small"><div class="crescent"></div></div>
+            <h2>تقديم تبرع مالي</h2>
+        </div>
+        <div class="header-center"></div>
+        <div class="header-right">
+            <span id="userName">...</span>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div class="section-content" style="max-width: 600px; margin: 0 auto;">
+            <h3>بيانات التبرع</h3>
+            <form id="donationForm">
+                <div class="form-group">
+                    <label>المبلغ (جنيه)</label>
+                    <input type="number" id="amount" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>طريقة الدفع</label>
+                    <select id="paymentMethod" required onchange="showPaymentDetails()">
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="bank">تحويل بنكي (بنكك 3030105)</option>
+                        <option value="fawry">فوري (6602420)</option>
+                        <option value="cash">نقداً (تسليم للمقر)</option>
+                    </select>
+                </div>
+                <div id="bankDetails" style="display: none; background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p><strong>بيانات الحساب البنكي:</strong></p>
+                    <p>بنكك: 3030105<br>اسم الحساب: جمعية الهلال الأحمر</p>
+                </div>
+                <div id="fawryDetails" style="display: none; background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p><strong>رقم فوري:</strong> 6602420<br>اسم المستفيد: جمعية الهلال الأحمر</p>
+                </div>
+                <div class="form-group">
+                    <label>رقم العملية (اخر اربعة ارقام )</label>
+                    <input type="text" id="transactionId" required placeholder="أدخل رقم العملية ">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">تقديم التبرع</button>
+            </form>
+            <hr>
+            <h4>تبرعاتي السابقة</h4>
+            <table class="data-table" id="myDonationsTable">
+                <thead>
+                    <tr>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="myDonationsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages/finance.js"></script>
+</body>
+</html>
