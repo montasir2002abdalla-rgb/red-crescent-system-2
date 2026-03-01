@@ -130,10 +130,11 @@ h1 {
     margin-bottom: 25px;
 }
 
-.back-btn {
+/* زر الرجوع الخاص بالنماذج (بما في ذلك نموذج تسجيل الدخول) */
+.form-header .back-btn {
     background: none;
     border: none;
-    color: var(--primary);
+    color: red;               /* لون أحمر كما هو مطلوب */
     font-size: 16px;
     cursor: pointer;
     display: flex;
@@ -141,8 +142,8 @@ h1 {
     gap: 5px;
 }
 
-.back-btn:hover {
-    color: var(--primary-dark);
+.form-header .back-btn:hover {
+    color: darkred;           /* لون أحمر غامق عند التمرير */
 }
 
 /* ===== نماذج ===== */
@@ -302,7 +303,7 @@ h1 {
     background-color: var(--primary);
     color: white;
     padding: 0 30px;
-    height: var(--header-height);
+    height: 50px;  /* بدلاً من var(--header-height) */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -937,7 +938,7 @@ h1 {
     background-color: #c9302c;
 }
 
-/* أزرار جانبية */
+/* أزرار جانبية (للوحة التحكم) */
 .back-btn {
     background: transparent;
     border: none;
