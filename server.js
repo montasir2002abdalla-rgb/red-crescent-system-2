@@ -184,21 +184,7 @@ function initDatabase() {
             }
         });
 
-        // إضافة بعض بيانات المخزون الافتراضية
-        db.get(`SELECT COUNT(*) as count FROM inventory`, [], (err, row) => {
-            if (row.count === 0) {
-                const items = [
-                    ['مواد غذائية متنوعة', 'food', null, 500, 'كيس', null, 100],
-                    ['بطاطين', 'shelter', null, 200, 'قطعة', null, 50],
-                    ['أدوية أساسية', 'medical', 'medicine', 150, 'علبة', '2025-12-31', 30],
-                    ['مطهرات', 'medical', 'disinfectant', 300, 'زجاجة', '2024-06-30', 50]
-                ];
-                items.forEach(item => {
-                    db.run(`INSERT INTO inventory (itemName, category, subCategory, quantity, unit, expiryDate, minStock) VALUES (?, ?, ?, ?, ?, ?, ?)`, item);
-                });
-                console.log('📦 تم إضافة بيانات مخزون افتراضية.');
-            }
-        });
+     
     });
 }
 
@@ -308,7 +294,7 @@ app.post('/api/register', (req, res) => {
                         if (err2) console.error(err2);
                     });
             }
-            res.status(201).json({ id: this.lastID, message: 'تم تقديم الطلب بنجاح' });
+            res.status(201).json({ id: this.lastID, message: 'تم تقديم الطلب بنجاح  ' });
         }
     );
 });

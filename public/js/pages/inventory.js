@@ -1,9 +1,11 @@
+// التحقق من تسجيل الدخول والصلاحية
 const user = requireAuth(['manager', 'inventory_keeper']);
 updateUserDisplay();
 
 let inventory = [];
 let financials = [];
 
+// تحميل جميع أصناف المخزون
 async function loadInventory() {
     try {
         inventory = await getInventory();
@@ -19,7 +21,7 @@ async function loadInventory() {
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="showUpdateModal(${item.id}, ${item.quantity})">تحديث</button>
                     ${user.role === 'manager' ? `
-                        <button class="btn btn-danger btn-sm" onclick="deleteInventoryItem(${item.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="handleDeleteItem(${item.id})"><i class="fas fa-trash"></i></button>
                     ` : ''}
                 </td>
             </tr>
@@ -29,6 +31,7 @@ async function loadInventory() {
     }
 }
 
+// تحميل المواد الطبية فقط
 async function loadMedicalItems() {
     try {
         const allItems = await getInventory();
@@ -46,7 +49,7 @@ async function loadMedicalItems() {
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="showUpdateModal(${item.id}, ${item.quantity})">تحديث</button>
                     ${user.role === 'manager' ? `
-                        <button class="btn btn-danger btn-sm" onclick="deleteInventoryItem(${item.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="handleDeleteItem(${item.id})"><i class="fas fa-trash"></i></button>
                     ` : ''}
                 </td>
             </tr>
@@ -56,6 +59,7 @@ async function loadMedicalItems() {
     }
 }
 
+// تحميل المعاملات المالية
 async function loadFinancial() {
     try {
         financials = await getFinancialTransactions();
@@ -78,6 +82,7 @@ async function loadFinancial() {
     }
 }
 
+// التبديل بين التبويبات
 function showTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -97,29 +102,36 @@ function showTab(tab) {
     }
 }
 
+// إظهار نافذة إضافة صنف
 function showAddItemModal() {
     document.getElementById('addItemModal').style.display = 'flex';
     document.getElementById('addItemForm').reset();
 }
 
+// إغلاق نافذة إضافة صنف
 function closeModal() {
     document.getElementById('addItemModal').style.display = 'none';
 }
 
+// إظهار نافذة تحديث الكمية
 function showUpdateModal(id, currentQty) {
     document.getElementById('updateItemId').value = id;
     document.getElementById('newQuantity').value = currentQty;
     document.getElementById('updateQuantityModal').style.display = 'flex';
 }
 
+// إغلاق نافذة تحديث الكمية
 function closeUpdateModal() {
     document.getElementById('updateQuantityModal').style.display = 'none';
 }
 
-async function deleteInventoryItem(id) {
+// دالة حذف الصنف (تم تغيير الاسم لتجنب التكرار)
+async function handleDeleteItem(id) {
     if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
         try {
+            // استدعاء الدالة العامة من api.js
             await deleteInventoryItem(id);
+            // إعادة تحميل الجداول بعد الحذف
             loadInventory();
             loadMedicalItems();
         } catch (error) {
@@ -128,14 +140,17 @@ async function deleteInventoryItem(id) {
     }
 }
 
+// إظهار نافذة تسجيل صرف
 function showExpenseModal() {
     document.getElementById('expenseModal').style.display = 'flex';
 }
 
+// إغلاق نافذة تسجيل صرف
 function closeExpenseModal() {
     document.getElementById('expenseModal').style.display = 'none';
 }
 
+// معالج تقديم نموذج الصرف
 document.getElementById('expenseForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const expense = {
@@ -151,6 +166,7 @@ document.getElementById('expenseForm')?.addEventListener('submit', async (e) => 
     }
 });
 
+// معالج تقديم نموذج إضافة صنف
 document.getElementById('addItemForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const item = {
@@ -172,6 +188,7 @@ document.getElementById('addItemForm').addEventListener('submit', async (e) => {
     }
 });
 
+// معالج تقديم نموذج تحديث الكمية
 document.getElementById('updateQuantityForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('updateItemId').value;
@@ -186,16 +203,19 @@ document.getElementById('updateQuantityForm').addEventListener('submit', async (
     }
 });
 
+// إظهار/إخفاء الحقول الفرعية عند تغيير التصنيف
 document.getElementById('category')?.addEventListener('change', function() {
     const isMedical = this.value === 'medical';
     document.getElementById('subCategoryGroup').style.display = isMedical ? 'block' : 'none';
     document.getElementById('expiryDateGroup').style.display = isMedical ? 'block' : 'none';
 });
 
+// إغلاق النوافذ المنبثقة عند النقر خارجها
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
 };
 
+// تحميل التبويب الافتراضي (جميع المواد)
 loadInventory();
