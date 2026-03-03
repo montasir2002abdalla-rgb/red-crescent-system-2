@@ -1,11 +1,11 @@
 /* public/css/styles.css */
 
 :root {
-    --primary: #8e2323;      /* أخضر زيتي رئيسي */
-    --primary-dark: #6b2f2f;  /* أخضر زيتي غامق */
-    --primary-light: #8CB04E; /* أخضر زيتي فاتح */
+    --primary: #8e2323;      /* أحمر رئيسي */
+    --primary-dark: #6b2f2f;  /* أحمر غامق */
+    --primary-light: #8CB04E; /* أخضر فاتح (تم تعديل التعليق) */
     --secondary: #808000;     /* زيتوني */
-    --accent: #CD853F;        /* لون ترابي (تباين) */
+    --accent: #CD853F;        /* لون ترابي */
     --danger: #b85c5c;
     --success: #5cb85c;
     --warning: #f0ad4e;
@@ -130,11 +130,11 @@ h1 {
     margin-bottom: 25px;
 }
 
-/* زر الرجوع الخاص بالنماذج (بما في ذلك نموذج تسجيل الدخول) */
+/* زر الرجوع الخاص بالنماذج */
 .form-header .back-btn {
     background: none;
     border: none;
-    color: red;               /* لون أحمر كما هو مطلوب */
+    color: red;
     font-size: 16px;
     cursor: pointer;
     display: flex;
@@ -143,7 +143,7 @@ h1 {
 }
 
 .form-header .back-btn:hover {
-    color: darkred;           /* لون أحمر غامق عند التمرير */
+    color: darkred;
 }
 
 /* ===== نماذج ===== */
@@ -303,7 +303,7 @@ h1 {
     background-color: var(--primary);
     color: white;
     padding: 0 30px;
-    height: 50px;  /* بدلاً من var(--header-height) */
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -531,7 +531,7 @@ h1 {
 /* ===== المحتوى الرئيسي ===== */
 .main-content {
     margin-right: var(--sidebar-width);
-    margin-top: calc(var(--header-height) + 10px); /* زيادة المسافة */
+    margin-top: calc(var(--header-height) + 10px);
     padding: 30px;
     transition: margin-right 0.3s;
     min-height: calc(100vh - var(--header-height) - 10px);
@@ -793,6 +793,9 @@ h1 {
     margin-bottom: 20px;
     border-bottom: 2px solid var(--border-color);
     padding-bottom: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tab {
@@ -804,6 +807,7 @@ h1 {
     font-size: 16px;
     color: var(--dark-text);
     transition: all 0.3s;
+    flex-shrink: 0;
 }
 
 .tab:hover {
@@ -963,6 +967,7 @@ h1 {
     padding: 5px 10px;
     border-radius: 20px;
     background-color: rgba(255,255,255,0.2);
+    transition: background 0.3s;
 }
 
 .user-menu:hover {
@@ -971,6 +976,7 @@ h1 {
 
 /* ===== تحسينات التوافق مع الهاتف ===== */
 @media (max-width: 768px) {
+    /* القائمة الجانبية */
     .sidebar {
         width: 60px;
     }
@@ -990,12 +996,46 @@ h1 {
     .main-content {
         margin-right: 60px;
     }
+
+    /* نقل زر القائمة الجانبية إلى الأعلى */
+    .toggle-sidebar {
+        top: 10px;
+        bottom: auto;
+        left: auto;
+        right: 10px;
+        position: absolute;
+        z-index: 100;
+    }
+    .main-nav {
+        padding-top: 60px;
+    }
+
+    /* النماذج */
     .form-row {
         grid-template-columns: 1fr;
     }
+    .modal-content {
+        padding: 20px;
+    }
+
+    /* البطاقات */
     .quick-stats {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
+    .stat-card {
+        padding: 15px 10px;
+    }
+    .stat-card i {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    .stat-card .count {
+        font-size: 24px;
+    }
+
+    /* الجداول */
     .data-table {
         font-size: 14px;
         display: block;
@@ -1007,75 +1047,42 @@ h1 {
         padding: 10px;
         white-space: nowrap;
     }
-    
-    /* تحسين أزرار الإجراءات في الجداول */
     .btn-sm {
-        padding: 4px 8px;
-        font-size: 11px;
+        padding: 6px 12px;
+        font-size: 12px;
+        min-width: 60px;
     }
-    
-    /* تحسين البطاقات */
-    .stat-card {
-        padding: 15px 10px;
+    .status-select {
+        padding: 8px;
+        font-size: 14px;
     }
-    
-    .stat-card i {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-    }
-    
-    .stat-card .count {
-        font-size: 24px;
-    }
-    
-    /* تحسين الهيدر */
+
+    /* الهيدر */
     .dashboard-header {
         padding: 0 15px;
     }
-    
     .header-left h2 {
         font-size: 18px;
     }
-    
     .back-btn {
         font-size: 18px;
         margin-left: 5px;
     }
-    
-    /* تحسين النماذج */
-    .modal-content {
-        padding: 20px;
+    .user-info {
+        font-size: 0.8rem;
     }
-
-    /* ===== نقل زر القائمة الجانبية إلى الأعلى ===== */
-    .toggle-sidebar {
-        top: 10px;               /* المسافة من الأعلى */
-        bottom: auto;            /* إلغاء القيمة السابقة bottom: 20px */
-        left: auto;              /* إلغاء القيمة السابقة left: 10px */
-        right: 10px;             /* يناسب RTL */
-        position: absolute;      /* تأكيد الوضع المطلق */
-        z-index: 100;            /* لضمان ظهوره فوق العناصر الأخرى */
-    }
-
-    /* إضافة مساحة علوية للمحتوى داخل الشريط الجانبي */
-    .main-nav {
-        padding-top: 60px;       /* إفساح مجال للزر في الأعلى */
-    }
-
-    /* تحسينات إضافية للهواتف */
-    .welcome-content h2 {
-        font-size: 28px;
-    }
-    .welcome-content p {
-        font-size: 16px;
-    }
-    .btn {
-        padding: 10px 20px;
+    .btn-logout {
+        padding: 0.3rem 0.6rem;
         font-size: 14px;
     }
-    .form-container {
-        padding: 20px;
+    .user-menu {
+        padding: 4px 8px;
+        font-size: 14px;
+    }
+
+    /* التقارير */
+    .reports-grid {
+        grid-template-columns: 1fr;
     }
     .report-card i {
         width: 60px;
@@ -1088,6 +1095,8 @@ h1 {
     .report-card p {
         font-size: 14px;
     }
+
+    /* الأنشطة */
     .activity-item {
         flex-wrap: wrap;
         gap: 10px;
@@ -1095,15 +1104,35 @@ h1 {
     .activity-details {
         width: calc(100% - 50px);
     }
-    /* جعل الأزرار في الجداول أكبر قليلاً لسهولة اللمس */
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 12px;
-        min-width: 60px;
+
+    /* التبويبات */
+    .tabs {
+        gap: 5px;
     }
-    /* تحسين عرض القوائم المنسدلة */
-    .status-select {
-        padding: 8px;
+    .tab {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    /* أدوات التقارير */
+    .report-filters input,
+    .report-filters select {
+        min-width: 150px;
+    }
+
+    /* الشاشة الرئيسية */
+    .welcome-content h2 {
+        font-size: 28px;
+    }
+    .welcome-content p {
+        font-size: 16px;
+    }
+    .welcome-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .btn {
+        padding: 10px 20px;
         font-size: 14px;
     }
 }
