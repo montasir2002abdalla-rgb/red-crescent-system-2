@@ -1047,6 +1047,65 @@ h1 {
     .modal-content {
         padding: 20px;
     }
+
+    /* ===== نقل زر القائمة الجانبية إلى الأعلى ===== */
+    .toggle-sidebar {
+        top: 10px;               /* المسافة من الأعلى */
+        bottom: auto;            /* إلغاء القيمة السابقة bottom: 20px */
+        left: auto;              /* إلغاء القيمة السابقة left: 10px */
+        right: 10px;             /* يناسب RTL */
+        position: absolute;      /* تأكيد الوضع المطلق */
+        z-index: 100;            /* لضمان ظهوره فوق العناصر الأخرى */
+    }
+
+    /* إضافة مساحة علوية للمحتوى داخل الشريط الجانبي */
+    .main-nav {
+        padding-top: 60px;       /* إفساح مجال للزر في الأعلى */
+    }
+
+    /* تحسينات إضافية للهواتف */
+    .welcome-content h2 {
+        font-size: 28px;
+    }
+    .welcome-content p {
+        font-size: 16px;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    .form-container {
+        padding: 20px;
+    }
+    .report-card i {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    .report-card h3 {
+        font-size: 18px;
+    }
+    .report-card p {
+        font-size: 14px;
+    }
+    .activity-item {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .activity-details {
+        width: calc(100% - 50px);
+    }
+    /* جعل الأزرار في الجداول أكبر قليلاً لسهولة اللمس */
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+    /* تحسين عرض القوائم المنسدلة */
+    .status-select {
+        padding: 8px;
+        font-size: 14px;
+    }
 }
 
 @media print {
