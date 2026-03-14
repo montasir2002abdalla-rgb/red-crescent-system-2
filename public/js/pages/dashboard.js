@@ -286,6 +286,45 @@ document.getElementById('globalSearch')?.addEventListener('input', function(e) {
         console.log('بحث عن:', query);
     }
 });
+// دالة لفتح/إغلاق القائمة على الجوال
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay') || createOverlay();
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+}
+
+// إنشاء طبقة الخلفية المعتمة إذا لم تكن موجودة
+function createOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebarOverlay';
+    overlay.className = 'sidebar-overlay';
+    overlay.onclick = closeMobileMenu;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function closeMobileMenu() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// استدعاء createOverlay عند تحميل الصفحة للتأكد من وجودها
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('sidebarOverlay')) {
+        createOverlay();
+    }
+});
+
+// إضافة مستمع لتغيير حجم الشاشة لإغلاق القائمة إذا أصبحت الشاشة كبيرة
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+    }
+});
 
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('collapsed');
