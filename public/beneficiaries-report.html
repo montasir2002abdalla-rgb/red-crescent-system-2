@@ -2,44 +2,199 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير المستفيدين</title>
-    <!-- إضافة مكتبة Font Awesome للأيقونات -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>تقرير المستفيدين - الهلال الأحمر</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* تحسينات الجوال والتقرير */
+        @media (max-width: 768px) {
+            .stats-container { grid-template-columns: 1fr 1fr !important; }
+            .charts-container { grid-template-columns: 1fr !important; }
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .stat-card .count {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .chart-box {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-box h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        canvas {
+            max-height: 250px;
+            width: 100% !important;
+        }
+    </style>
 </head>
 <body>
     <header class="dashboard-header">
         <div class="header-left">
-            <!-- زر الرجوع (موجود مسبقاً) -->
             <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
             <div class="logo-small"><div class="crescent"></div></div>
             <h2>تقرير المستفيدين</h2>
         </div>
         <div class="header-center"></div>
         <div class="header-right">
-            <span id="userName">مدير النظام </span>
+            <span id="userName">مدير النظام</span>
         </div>
     </header>
-    <div class="container">
-        <div class="section-content">
-            <canvas id="beneficiariesChart" width="400" height="200"></canvas>
+
+    <div class="container" style="margin-top: 20px;">
+        <!-- إحصائيات سريعة -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div class="count" id="totalBeneficiaries">0</div>
+                <div class="label">إجمالي المستفيدين</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-male"></i>
+                <div class="count" id="maleCount">0</div>
+                <div class="label">ذكور</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-female"></i>
+                <div class="count" id="femaleCount">0</div>
+                <div class="label">إناث</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-heartbeat"></i>
+                <div class="count" id="healthCases">0</div>
+                <div class="label">حالات صحية خاصة</div>
+            </div>
+        </div>
+
+        <!-- الرسوم البيانية -->
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3>توزيع المستفيدين حسب الجنس</h3>
+                <canvas id="genderChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>عدد المسجلين شهرياً (آخر 6 أشهر)</h3>
+                <canvas id="monthlyChart"></canvas>
+            </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script>
-        const ctx = document.getElementById('beneficiariesChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['يناير', 'فبراير', 'مارس'],
-                datasets: [{
-                    label: 'عدد المستفيدين',
-                    data: [12, 19, 3],
-                    backgroundColor: 'rgba(107, 142, 35, 0.5)'
-                }]
+        const user = requireAuth(['manager', 'inventory_keeper', 'employee']);
+        updateUserDisplay();
+
+        async function loadReport() {
+            try {
+                const beneficiaries = await getBeneficiaries();
+                
+                // إحصائيات عامة
+                document.getElementById('totalBeneficiaries').innerText = beneficiaries.length;
+                
+                // حساب الذكور والإناث (نفترض وجود حقل gender)
+                const male = beneficiaries.filter(b => b.gender === 'male' || b.gender === 'ذكر').length;
+                const female = beneficiaries.filter(b => b.gender === 'female' || b.gender === 'أنثى').length;
+                document.getElementById('maleCount').innerText = male;
+                document.getElementById('femaleCount').innerText = female;
+                
+                // الحالات الصحية (نفترض healthStatus ليس فارغاً أو يحتوي على كلمات مثل "مرض")
+                const healthIssues = beneficiaries.filter(b => b.healthStatus && b.healthStatus.trim() !== '' && b.healthStatus !== 'جيد').length;
+                document.getElementById('healthCases').innerText = healthIssues;
+
+                // رسم بياني دائري للجنس
+                const ctxGender = document.getElementById('genderChart').getContext('2d');
+                new Chart(ctxGender, {
+                    type: 'pie',
+                    data: {
+                        labels: ['ذكور', 'إناث'],
+                        datasets: [{
+                            data: [male, female],
+                            backgroundColor: ['#3498db', '#e83e8c']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+
+                // رسم بياني للمسجلين شهرياً (آخر 6 أشهر)
+                const months = [];
+                const counts = [];
+                const now = new Date();
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    months.push(d.toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }));
+                }
+
+                const monthCounts = new Array(6).fill(0);
+                beneficiaries.forEach(b => {
+                    const regDate = new Date(b.createdAt);
+                    const diffMonths = (now.getFullYear() - regDate.getFullYear()) * 12 + (now.getMonth() - regDate.getMonth());
+                    if (diffMonths >= 0 && diffMonths < 6) {
+                        monthCounts[5 - diffMonths]++;
+                    }
+                });
+
+                const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+                new Chart(ctxMonthly, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'عدد المسجلين',
+                            data: monthCounts,
+                            backgroundColor: 'rgba(107, 142, 35, 0.7)'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true,
+                        scales: { y: { beginAtZero: true, stepSize: 1 } }
+                    }
+                });
+
+            } catch (error) {
+                alert('خطأ في تحميل البيانات: ' + error.message);
             }
-        });
+        }
+
+        loadReport();
     </script>
 </body>
 </html>

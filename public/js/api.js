@@ -1,12 +1,18 @@
-const API_BASE = '';
+
 
 async function handleResponse(response) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        // قد يكون الخطأ 404 أو 500 مع صفحة HTML
+        const text = await response.text();
+        console.error('Response is not JSON:', text.substring(0, 200));
+        throw new Error(`خطأ في الخادم (${response.status}) - تأكد من اتصالك بالخادم`);
+    }
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'حدث خطأ');
     return data;
 }
-
-// المصادقة
+// ==================== دوال المصادقة (Auth) ====================
 async function login(employeeId, password) {
     const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -25,7 +31,6 @@ async function register(userData) {
     return handleResponse(res);
 }
 
-// تغيير كلمة المرور (جديد)
 async function changePassword(oldPassword, newPassword) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/auth/change-password', {
@@ -39,7 +44,15 @@ async function changePassword(oldPassword, newPassword) {
     return handleResponse(res);
 }
 
-// المستخدمين
+// ==================== دوال المستخدمين (Users) ====================
+async function getAllUsers() {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return handleResponse(res);
+}
+
 async function getPendingUsers() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/users/pending', {
@@ -74,7 +87,21 @@ async function rejectUser(userId) {
     return handleResponse(res);
 }
 
-// المخزون
+async function deleteUser(userId) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return handleResponse(res);
+}
+
+// (احتفاظ بالاسم السابق للتوافق)
+async function deleteUserById(id) {
+    return deleteUser(id);
+}
+
+// ==================== دوال المخزون (Inventory) ====================
 async function getInventory() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/inventory', {
@@ -118,7 +145,7 @@ async function deleteInventoryItem(id) {
     return handleResponse(res);
 }
 
-// التبرعات
+// ==================== دوال التبرعات (Donations) ====================
 async function getDonations() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/donations', {
@@ -128,11 +155,8 @@ async function getDonations() {
 }
 
 async function getUserDonations() {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/donations', {
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return handleResponse(res);
+    // نفس getDonations حالياً، لكن يمكن تخصيصها لاحقاً
+    return getDonations();
 }
 
 async function createDonation(data) {
@@ -148,7 +172,7 @@ async function createDonation(data) {
     return handleResponse(res);
 }
 
-// المصروفات
+// ==================== دوال المصروفات (Expenses) ====================
 async function createExpense(data) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/expenses', {
@@ -162,7 +186,7 @@ async function createExpense(data) {
     return handleResponse(res);
 }
 
-// المعاملات المالية
+// ==================== دوال المعاملات المالية (Financial Transactions) ====================
 async function getFinancialTransactions() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/financial-transactions', {
@@ -171,7 +195,7 @@ async function getFinancialTransactions() {
     return handleResponse(res);
 }
 
-// المستفيدين
+// ==================== دوال المستفيدين (Beneficiaries) ====================
 async function getBeneficiaries() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/beneficiaries', {
@@ -215,7 +239,7 @@ async function deleteBeneficiary(id) {
     return handleResponse(res);
 }
 
-// طلبات المساعدة
+// ==================== دوال طلبات المساعدة (Assistance Requests) ====================
 async function getAssistanceRequests() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/assistance-requests', {
@@ -259,7 +283,7 @@ async function deleteAssistanceRequest(id) {
     return handleResponse(res);
 }
 
-// فرق الطوارئ
+// ==================== دوال فرق الطوارئ (Emergency Teams) ====================
 async function getEmergencyTeams() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/emergency-teams', {
@@ -294,7 +318,7 @@ async function updateEmergencyTeam(id, data) {
     return handleResponse(res);
 }
 
-// اللوجستيات
+// ==================== دوال اللوجستيات (Logistics) ====================
 async function getLogistics() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/logistics', {
@@ -329,7 +353,7 @@ async function updateLogistics(id, data) {
     return handleResponse(res);
 }
 
-// السجلات الصحية
+// ==================== دوال السجلات الصحية (Health Records) ====================
 async function getHealthRecords(beneficiaryId) {
     const token = localStorage.getItem('token');
     const res = await fetch(`/api/health-records/${beneficiaryId}`, {
@@ -372,8 +396,20 @@ async function deleteHealthRecord(id) {
     });
     return handleResponse(res);
 }
-
-// الشكاوى والتنبيهات
+async function updateUser(id, data) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+}
+window.updateUser = updateUser;
+// ==================== دوال الشكاوى والتنبيهات (Complaints & Notifications) ====================
 async function getComplaints() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/complaints', {
@@ -395,7 +431,7 @@ async function createComplaint(data) {
     return handleResponse(res);
 }
 
-// الإحصائيات
+// ==================== دوال الإحصائيات (Stats) ====================
 async function getStats() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/stats', {
@@ -404,41 +440,55 @@ async function getStats() {
     return handleResponse(res);
 }
 
-// جعل الدوال عامة
+// ==================== تصدير الدوال إلى النطاق العام ====================
 window.login = login;
 window.register = register;
-window.changePassword = changePassword; // إضافة السطر الجديد
+window.changePassword = changePassword;
+
+window.getAllUsers = getAllUsers;
 window.getPendingUsers = getPendingUsers;
 window.getActiveUsers = getActiveUsers;
 window.approveUser = approveUser;
 window.rejectUser = rejectUser;
+window.deleteUser = deleteUser;
+window.deleteUserById = deleteUserById; // للتوافق
+
 window.getInventory = getInventory;
 window.addInventoryItem = addInventoryItem;
 window.updateInventoryItem = updateInventoryItem;
 window.deleteInventoryItem = deleteInventoryItem;
+
 window.getDonations = getDonations;
 window.getUserDonations = getUserDonations;
 window.createDonation = createDonation;
+
 window.createExpense = createExpense;
 window.getFinancialTransactions = getFinancialTransactions;
+
 window.getBeneficiaries = getBeneficiaries;
 window.createBeneficiary = createBeneficiary;
 window.updateBeneficiary = updateBeneficiary;
 window.deleteBeneficiary = deleteBeneficiary;
+
 window.getAssistanceRequests = getAssistanceRequests;
 window.createAssistanceRequest = createAssistanceRequest;
 window.updateAssistanceRequestStatus = updateAssistanceRequestStatus;
 window.deleteAssistanceRequest = deleteAssistanceRequest;
+
 window.getEmergencyTeams = getEmergencyTeams;
 window.createEmergencyTeam = createEmergencyTeam;
 window.updateEmergencyTeam = updateEmergencyTeam;
+
 window.getLogistics = getLogistics;
 window.createLogistics = createLogistics;
 window.updateLogistics = updateLogistics;
+
 window.getHealthRecords = getHealthRecords;
 window.createHealthRecord = createHealthRecord;
 window.updateHealthRecord = updateHealthRecord;
 window.deleteHealthRecord = deleteHealthRecord;
+window.updateUser = updateUser;
 window.getComplaints = getComplaints;
 window.createComplaint = createComplaint;
+
 window.getStats = getStats;

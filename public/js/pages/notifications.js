@@ -1,14 +1,38 @@
+// js/pages/notifications.js
 const user = requireAuth();
 updateUserDisplay();
 
-if (user.role !== 'donor' && user.role !== 'beneficiary' && user.role !== 'manager') {
-    alert('غير مسموح لك بالوصول إلى هذه الصفحة');
+const isSender = (user.role === 'donor' || user.role === 'beneficiary');
+const isReceiver = (user.role === 'manager' || user.role === 'inventory_keeper' || user.role === 'employee');
+
+if (!isSender && !isReceiver) {
+    alert('غير مسموح بالوصول');
     window.location.href = 'dashboard.html';
+}
+
+function initTabs() {
+    const tabsContainer = document.querySelector('.tabs');
+    let tabsHtml = '';
+
+    if (isReceiver) {
+        tabsHtml += `<button class="tab active" onclick="showTab('notifications')">التنبيهات الواردة</button>`;
+        tabsHtml += `<button class="tab" onclick="showTab('complaints')">الشكاوى الواردة</button>`;
+    }
+    if (isSender) {
+        tabsHtml += `<button class="tab" onclick="showTab('new')">إرسال جديد</button>`;
+        tabsHtml += `<button class="tab" onclick="showTab('myMessages')">رسائلي</button>`;
+    }
+
+    tabsContainer.innerHTML = tabsHtml;
+
+    if (isReceiver) showTab('notifications');
+    else if (isSender) showTab('myMessages');
 }
 
 function showTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
     if (tab === 'notifications') {
         document.querySelector('[onclick="showTab(\'notifications\')"]').classList.add('active');
         document.getElementById('notificationsTab').classList.add('active');
@@ -17,41 +41,64 @@ function showTab(tab) {
         document.querySelector('[onclick="showTab(\'complaints\')"]').classList.add('active');
         document.getElementById('complaintsTab').classList.add('active');
         loadComplaints();
-    } else {
+    } else if (tab === 'new') {
         document.querySelector('[onclick="showTab(\'new\')"]').classList.add('active');
         document.getElementById('newTab').classList.add('active');
+    } else if (tab === 'myMessages') {
+        document.querySelector('[onclick="showTab(\'myMessages\')"]').classList.add('active');
+        document.getElementById('myMessagesTab').classList.add('active');
+        loadMyMessages();
     }
 }
 
 async function loadNotifications() {
     try {
-        const complaints = await getComplaints();
-        const notifications = complaints.filter(c => c.type === 'notification');
+        const all = await getComplaints();
+        const notifications = all.filter(c => c.type === 'notification');
         const container = document.getElementById('notificationsList');
         container.innerHTML = notifications.map(n => `
             <div class="complaint-item">
+                <p><strong>من: ${n.senderName || n.userName || 'غير معروف'}</strong></p>
                 <p>${n.message}</p>
                 <small>${new Date(n.createdAt).toLocaleString('ar-EG')}</small>
             </div>
         `).join('') || '<p>لا توجد تنبيهات</p>';
     } catch (error) {
-        alert(error.message);
+        alert('خطأ في تحميل التنبيهات: ' + error.message);
     }
 }
 
 async function loadComplaints() {
     try {
-        const complaints = await getComplaints();
-        const userComplaints = user.role === 'manager' ? complaints : complaints.filter(c => c.type === 'complaint');
+        const all = await getComplaints();
+        const complaints = all.filter(c => c.type === 'complaint');
         const container = document.getElementById('complaintsList');
-        container.innerHTML = userComplaints.map(c => `
+        container.innerHTML = complaints.map(c => `
             <div class="complaint-item">
+                <p><strong>من: ${c.senderName || c.userName || 'غير معروف'}</strong></p>
                 <p>${c.message}</p>
                 <small>${new Date(c.createdAt).toLocaleString('ar-EG')}</small>
             </div>
         `).join('') || '<p>لا توجد شكاوى</p>';
     } catch (error) {
-        alert(error.message);
+        alert('خطأ في تحميل الشكاوى: ' + error.message);
+    }
+}
+
+async function loadMyMessages() {
+    try {
+        const all = await getComplaints();
+        const myMessages = all.filter(c => c.userId === user.id || c.senderId === user.id);
+        const container = document.getElementById('myMessagesList');
+        container.innerHTML = myMessages.map(m => `
+            <div class="complaint-item">
+                <p><span class="badge ${m.type}">${m.type === 'notification' ? 'تنبيه' : 'شكوى'}</span></p>
+                <p>${m.message}</p>
+                <small>${new Date(m.createdAt).toLocaleString('ar-EG')}</small>
+            </div>
+        `).join('') || '<p>لم ترسل أي رسائل بعد</p>';
+    } catch (error) {
+        alert('خطأ في تحميل رسائلك: ' + error.message);
     }
 }
 
@@ -63,12 +110,13 @@ document.getElementById('complaintForm').addEventListener('submit', async (e) =>
     };
     try {
         await createComplaint(data);
-        alert('تم الإرسال');
+        alert('تم الإرسال بنجاح');
         document.getElementById('complaintForm').reset();
-        showTab('notifications');
+        if (isSender) showTab('myMessages');
+        else showTab('notifications');
     } catch (error) {
-        alert(error.message);
+        alert('فشل الإرسال: ' + error.message);
     }
 });
 
-loadNotifications();
+initTabs();

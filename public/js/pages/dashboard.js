@@ -1,3 +1,5 @@
+// js/pages/dashboard.js (معدل لإزالة تكرار الإشعارات)
+
 // js/pages/dashboard.js
 
 const user = requireAuth();
@@ -37,23 +39,31 @@ function buildSidebar() {
         html += `<div class="nav-section"><h4 class="nav-title">التبرعات</h4><ul>`;
         html += `<li><a href="#" class="nav-link" onclick="window.location.href='finance.html'"><i class="fas fa-hand-holding-heart"></i> <span>تقديم تبرع</span></a></li>`;
         html += `<li><a href="#" class="nav-link" onclick="loadSection('myDonations')"><i class="fas fa-history"></i> <span>تبرعاتي</span></a></li>`;
-        html += `<li><a href="#" class="nav-link" onclick="window.location.href='notifications.html'"><i class="fas fa-bell"></i> <span>التنبيهات والشكاوى</span></a></li>`;
         html += `</ul></div>`;
     } else if (role === 'beneficiary') {
         html += `<div class="nav-section"><h4 class="nav-title">الخدمات</h4><ul>`;
         html += `<li><a href="#" class="nav-link" onclick="window.location.href='requests.html'"><i class="fas fa-hands-helping"></i> <span>طلب مساعدة</span></a></li>`;
         html += `<li><a href="#" class="nav-link" onclick="loadSection('myRequests')"><i class="fas fa-list"></i> <span>طلباتي</span></a></li>`;
-        html += `<li><a href="#" class="nav-link" onclick="window.location.href='notifications.html'"><i class="fas fa-bell"></i> <span>التنبيهات والشكاوى</span></a></li>`;
         html += `</ul></div>`;
     }
 
-    // إضافة عنصر تغيير كلمة المرور في الأسفل (لجميع المستخدمين)
+    // إضافة عنصر الإشعارات مرة واحدة فقط للجميع (مع عداد)
+    html += `<div class="nav-section" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;"><ul>`;
+    html += `<li><a href="notifications.html" class="nav-link" id="notificationsLink">`;
+    html += `<i class="fas fa-bell"></i> <span>الإشعارات</span>`;
+    html += `<span class="notification-badge" id="notificationBadge" style="display: none;">0</span>`;
+    html += `</a></li>`;
+    html += `</ul></div>`;
+
+    // إضافة عنصر تغيير كلمة المرور في الأسفل
     html += `<div class="nav-section"><ul>`;
     html += `<li><a href="#" class="nav-link" onclick="showChangePasswordModal()"><i class="fas fa-key"></i> <span>تغيير كلمة المرور</span></a></li>`;
     html += `</ul></div>`;
 
     nav.innerHTML = html;
 }
+
+
 
 async function loadSection(section) {
     const content = document.getElementById('mainContent');
@@ -239,6 +249,37 @@ async function loadRecentActivities() {
     }
 }
 
+// دالة تحميل عدد الإشعارات غير المقروءة
+async function loadNotificationCount() {
+    try {
+        const complaints = await getComplaints(); // تعيد جميع الشكاوى/التنبيهات
+        let unreadCount = 0;
+
+        // تحديد عدد الإشعارات غير المقروءة حسب دور المستخدم
+        if (user.role === 'manager' || user.role === 'inventory_keeper' || user.role === 'employee') {
+            // المستقبلون: كل التنبيهات والشكاوى (يمكن تحسينها بحقل isRead)
+            unreadCount = complaints.length;
+        } else if (user.role === 'donor' || user.role === 'beneficiary') {
+            // المرسلون: فقط الرسائل التي أرسلوها
+            unreadCount = complaints.filter(c => c.userId === user.id || c.senderId === user.id).length;
+        }
+
+        if (unreadCount > 0) {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                badge.style.display = 'inline-block';
+                badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+            }
+        } else {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) badge.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('فشل تحميل عدد الإشعارات:', error);
+        // لا نظهر العداد في حال الخطأ
+    }
+}
+
 document.getElementById('globalSearch')?.addEventListener('input', function(e) {
     const query = e.target.value.trim();
     if (query.length > 2) {
@@ -257,3 +298,6 @@ function closeNotifications() {
 
 buildSidebar();
 loadSection('dashboard');
+
+// تحميل عدد الإشعارات بعد ثانية لضمان تحميل الصفحة
+setTimeout(loadNotificationCount, 1000);

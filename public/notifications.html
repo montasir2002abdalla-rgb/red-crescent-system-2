@@ -23,18 +23,16 @@
     <div class="container" style="margin-top: 20px;">
         <div class="section-content">
             <div class="tabs">
-                <button class="tab active" onclick="showTab('notifications')">التنبيهات</button>
-                <button class="tab" onclick="showTab('complaints')">الشكاوى</button>
-                <button class="tab" onclick="showTab('new')">إرسال جديد</button>
+                <!-- يتم تعبئة التبويبات تلقائياً بواسطة notifications.js حسب الصلاحية -->
             </div>
 
-            <div id="notificationsTab" class="tab-content active">
+            <div id="notificationsTab" class="tab-content">
                 <h3>التنبيهات الواردة</h3>
                 <div id="notificationsList" class="complaints-list"></div>
             </div>
 
             <div id="complaintsTab" class="tab-content">
-                <h3>الشكاوى المقدمة</h3>
+                <h3>الشكاوى الواردة</h3>
                 <div id="complaintsList" class="complaints-list"></div>
             </div>
 
@@ -54,6 +52,11 @@
                     </div>
                     <button type="submit" class="btn btn-primary">إرسال</button>
                 </form>
+            </div>
+
+            <div id="myMessagesTab" class="tab-content">
+                <h3>رسائلي المرسلة</h3>
+                <div id="myMessagesList" class="complaints-list"></div>
             </div>
         </div>
     </div>

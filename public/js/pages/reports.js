@@ -3,7 +3,16 @@ updateUserDisplay();
 
 const reportsGrid = document.getElementById('reportsGrid');
 let reports = [];
-
+// داخل reports.js بعد تعريف المصفوفة reports
+if (user.role === 'manager') {
+    reports.push({
+        icon: 'fas fa-user-cog',
+        title: 'إدارة المستخدمين',
+        desc: 'عرض وإدارة المستخدمين والطلبات',
+        link: 'users-management.html'
+    });
+}
+// في reports.js، داخل الشرط الخاص بالمدير (manager) نضيف:
 if (user.role === 'manager' || user.role === 'inventory_keeper') {
     reports = [
         { icon: 'fas fa-users', title: 'تقرير المستفيدين', desc: 'إحصائية بعدد المستفيدين', link: 'beneficiaries-report.html' },
@@ -12,8 +21,11 @@ if (user.role === 'manager' || user.role === 'inventory_keeper') {
         { icon: 'fas fa-money-bill', title: 'التقرير المالي', desc: 'إيرادات ومصروفات', link: 'financial-report.html' },
         { icon: 'fas fa-tasks', title: 'طلبات المساعدة', desc: 'حالة الطلبات', link: 'requests-report.html' },
         { icon: 'fas fa-ambulance', title: 'فرق الطوارئ', desc: 'أداء الفرق', link: 'emergency-report.html' },
-        { icon: 'fas fa-pills', title: 'تقرير الأدوية', desc: 'حالة الأدوية والمواد الصحية', link: 'medical-report.html' }
+        { icon: 'fas fa-pills', title: 'تقرير الأدوية', desc: 'حالة الأدوية والمواد الصحية', link: 'medical-report.html' },
+        // بطاقة جديدة لإدارة المستخدمين (تظهر للمدير فقط)
+        { icon: 'fas fa-user-cog', title: 'إدارة المستخدمين', desc: 'حذف الموظفين وإحصائيات الطلبات', link: 'users-management.html' }
     ];
+
 } else if (user.role === 'donor') {
     reports = [
         { icon: 'fas fa-hand-holding-heart', title: 'تبرعاتي', desc: 'سجل تبرعاتي', link: 'my-donations-report.html' },
