@@ -1309,6 +1309,7 @@ h1 {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 1.5rem;
+    margin-top: 20px; /* مسافة علوية مناسبة */
 }
 
 .section-content {
@@ -2546,6 +2547,7 @@ h1 {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
 @media (max-width: 768px) {
     /* ... الكود الموجود ... */
     
@@ -2595,4 +2597,406 @@ h1 {
 /* إظهار زر الهمبرغر فقط على الجوال */
 .menu-toggle {
     display: none;
+}
+
+/* ===== تحسين المسافات العلوية (إنزال الأيقونات من الهيدر) ===== */
+/* هذه القواعد تزيد المسافة بين الهيدر والمحتوى وتنزل الأيقونات قليلاً داخل البطاقات */
+
+/* مسافة علوية للحاوية الرئيسية في الصفحات */
+.container {
+    margin-top: 20px !important; /* تعديل حسب الرغبة (10px-30px) */
+}
+
+/* تقليل المسافة العلوية للبطاقات الإحصائية إذا لزم الأمر */
+.quick-stats,
+.stats-container {
+    margin-top: 15px;
+}
+
+/* المسافة العلوية لعناصر التقارير */
+.report-filters {
+    margin-top: 15px;
+}
+
+/* تنزيل الأيقونات داخل البطاقات */
+.stat-card i,
+.report-card i {
+    margin-top: 15px; /* المسافة بين أعلى البطاقة والأيقونة */
+}
+
+/* ضبط الهيدر ليكون أقل ارتفاعًا إذا لزم الأمر (اختياري) */
+.dashboard-header {
+    height: var(--header-height); /* احتفظ بالقيمة الأصلية أو غيّرها */
+}
+
+/* إذا كنت تريد تقريب المحتوى أكثر من الهيدر، استخدم margin-top أصغر */
+/* إذا أردت إنزاله أكثر، استخدم margin-top أكبر */
+/* إنزال محتوى التقارير */
+body.report-page .container {
+    margin-top: 30px !important;
+}
+
+body.report-page .report-filters {
+    margin-top: 20px;
+}
+
+body.report-page .stats-container {
+    margin-top: 15px;
+}
+
+body.report-page .reports-grid {
+    margin-top: 15px;
+}
+/* ===== تحسين القائمة الجانبية (تكبير "القائمة الرئيسية" و "إدارة النظام") ===== */
+.sidebar .nav-link {
+    font-size: 1rem;
+    padding: 0.9rem 1.5rem;
+}
+.sidebar .nav-link i {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+}
+.nav-title {
+    font-size: 0.85rem;
+    padding: 0.8rem 1.5rem;
+}
+.nav-section:first-child .nav-title {
+    background: linear-gradient(135deg, var(--sky-600), var(--sky-800));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    font-size: 0.95rem;
+}
+
+/* ===== أنماط الرسائل (مقروء / غير مقروء) ===== */
+.complaint-item.unread {
+    background: rgba(255, 255, 255, 0.9);
+    border-right-color: var(--sky-700);
+}
+.complaint-item.read {
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0.8;
+}
+.complaint-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+/* ===== إنزال محتوى التقارير ===== */
+body.report-page .container {
+    margin-top: 40px !important;
+}
+body.report-page .report-filters {
+    margin-top: 25px;
+}
+body.report-page .stats-container {
+    margin-top: 20px;
+}
+body.report-page .reports-grid {
+    margin-top: 20px;
+}
+/* ===== تحويل الجداول إلى تنسيق عمودي (بطاقات) على الشاشات الصغيرة ===== */
+@media (max-width: 768px) {
+    /* تحويل جدول المستخدمين إلى تنسيق بطاقات */
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead {
+        display: none; /* إخفاء رأس الجدول */
+    }
+
+    .data-table tr {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 20px;
+        padding: 15px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        position: relative;
+    }
+
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        text-align: right;
+        font-size: 0.9rem;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--sky-800);
+        margin-left: 15px;
+        flex-basis: 40%;
+        text-align: right;
+    }
+
+    /* تخصيص أزرار الإجراءات لتظهر في صف منفصل أو بشكل مرن */
+    .data-table td:last-child {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .data-table td:last-child::before {
+        content: "الإجراءات";
+        font-weight: 700;
+        color: var(--sky-800);
+        flex-basis: 100%;
+        margin-bottom: 10px;
+    }
+}/* ===== إنزال المحتوى من الهيدر ===== */
+body {
+    padding-top: 10px;
+}
+
+.container {
+    margin-top: 30px !important;
+}
+
+body.report-page .container {
+    margin-top: 50px !important;
+}
+
+.dashboard-welcome {
+    margin-top: 20px;
+}
+
+.quick-stats,
+.stats-container {
+    margin-top: 20px;
+}
+
+/* ===== تحويل الجداول إلى تنسيق عمودي (بطاقات) على الشاشات الصغيرة ===== */
+@media (max-width: 768px) {
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tr {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 20px;
+        padding: 15px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        text-align: right;
+        font-size: 0.9rem;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--sky-800);
+        margin-left: 15px;
+        flex-basis: 40%;
+        text-align: right;
+    }
+
+    .data-table td:last-child {
+        flex-wrap: wrap;
+    }
+
+    .data-table td:last-child::before {
+        content: "الإجراءات";
+        font-weight: 700;
+        color: var(--sky-800);
+        flex-basis: 100%;
+        margin-bottom: 10px;
+    }
+}
+/* ===== تحسين الهيدر وإزالة كلمة "مدير" ===== */
+.user-name {
+    font-size: 1rem;
+    font-weight: 700;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: var(--neutral-800);
+    color: var(--neutral-800);
+}
+
+.user-role {
+    background: linear-gradient(145deg, rgba(2, 136, 209, 0.2), rgba(77, 182, 172, 0.2));
+    border: 1px solid rgba(79, 195, 247, 0.5);
+    color: var(--sky-800);
+    font-weight: 700;
+    padding: 0.3rem 1rem;
+    border-radius: 30px;
+}
+
+/* ===== تحويل الجداول إلى تنسيق عمودي على الجوال ===== */
+@media (max-width: 768px) {
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tr {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 20px;
+        padding: 15px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        text-align: right;
+        font-size: 0.9rem;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--sky-800);
+        margin-left: 15px;
+        flex-basis: 40%;
+        text-align: right;
+    }
+
+    .data-table td:last-child {
+        flex-wrap: wrap;
+    }
+
+    .data-table td:last-child::before {
+        content: "الإجراءات";
+        font-weight: 700;
+        color: var(--sky-800);
+        flex-basis: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* ===== ألوان التقارير السماوية ===== */
+.report-card i {
+    background: linear-gradient(145deg, var(--sky-100), white);
+    color: var(--sky-600);
+}
+.report-card:hover i {
+    background: linear-gradient(145deg, var(--sky-500), var(--sky-700));
+    color: white;
+}
+
+/* ===== إنزال المحتوى من الهيدر ===== */
+body {
+    padding-top: 10px;
+}
+.container {
+    margin-top: 30px !important;
+}
+body.report-page .container {
+    margin-top: 50px !important;
+}
+/* ===== تحويل الجداول إلى تنسيق عمودي (بطاقات) على الشاشات الصغيرة ===== */
+@media (max-width: 768px) {
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tr {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 20px;
+        padding: 15px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        text-align: right;
+        font-size: 0.9rem;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--sky-800);
+        margin-left: 15px;
+        flex-basis: 40%;
+        text-align: right;
+    }
+
+    .data-table td:last-child {
+        flex-wrap: wrap;
+    }
+
+    .data-table td:last-child::before {
+        content: "الإجراءات";
+        font-weight: 700;
+        color: var(--sky-800);
+        flex-basis: 100%;
+        margin-bottom: 10px;
+    }
 }

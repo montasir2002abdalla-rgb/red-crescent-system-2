@@ -2,7 +2,14 @@ function updateUserDisplay() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
         document.querySelectorAll('#userName').forEach(el => el.textContent = user.name);
-        document.querySelectorAll('#userRole').forEach(el => el.textContent = getRoleName(user.role));
+        let roleText = '';
+        if (user.role === 'manager') roleText = 'مدير النظام';
+        else if (user.role === 'inventory_keeper') roleText = 'أمين مخزن';
+        else if (user.role === 'employee') roleText = 'موظف';
+        else if (user.role === 'volunteer') roleText = 'متطوع';
+        else if (user.role === 'donor') roleText = 'مانح';
+        else if (user.role === 'beneficiary') roleText = 'مستفيد';
+        document.querySelectorAll('#userRole').forEach(el => el.textContent = roleText);
     }
 }
 

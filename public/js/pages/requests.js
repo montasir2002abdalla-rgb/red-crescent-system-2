@@ -18,21 +18,24 @@ async function loadRequests() {
         if (!tbody) return;
 
         let filtered = requests;
-        if (user.role === 'beneficiary' && currentBeneficiaryId) {
+        if (user.role === 'beneficiary') {
+            if (!currentBeneficiaryId) {
+                await getBeneficiaryIdFromUser();
+            }
             filtered = requests.filter(r => r.beneficiaryId === currentBeneficiaryId);
         }
 
         tbody.innerHTML = filtered.map(r => `
             <tr>
-                <td>${r.beneficiaryName || 'غير معروف'}</td>
-                <td>${r.requestType}</td>
-                <td>${r.description.substring(0, 50)}...</td>
-                <td><span class="status ${r.status}">${r.status}</span></td>
-                <td>${new Date(r.createdAt).toLocaleDateString('ar-EG')}</td>
-                <td>
+                <td data-label="المستفيد">${r.beneficiaryName || 'غير معروف'}</td>
+                <td data-label="نوع الطلب">${r.requestType}</td>
+                <td data-label="الوصف">${r.description.substring(0, 50)}...</td>
+                <td data-label="الحالة"><span class="status ${r.status}">${r.status === 'pending' ? 'معلق' : r.status === 'in_progress' ? 'قيد التنفيذ' : r.status === 'completed' ? 'مكتمل' : 'مرفوض'}</span></td>
+                <td data-label="التاريخ">${new Date(r.createdAt).toLocaleDateString('ar-EG')}</td>
+                <td data-label="إجراءات">
                     ${(user.role === 'manager' || user.role === 'employee') ? `
                         <select onchange="updateRequestStatus(${r.id}, this.value)" class="status-select">
-                            <option value="pending" ${r.status === 'pending' ? 'selected' : ''}>قيد الانتظار</option>
+                            <option value="pending" ${r.status === 'pending' ? 'selected' : ''}>معلق</option>
                             <option value="in_progress" ${r.status === 'in_progress' ? 'selected' : ''}>قيد التنفيذ</option>
                             <option value="completed" ${r.status === 'completed' ? 'selected' : ''}>مكتمل</option>
                             <option value="rejected" ${r.status === 'rejected' ? 'selected' : ''}>مرفوض</option>

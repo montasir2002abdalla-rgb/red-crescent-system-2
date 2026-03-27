@@ -20,24 +20,28 @@
         </div>
     </header>
 
-    <div class="container" style="margin-top: 20px;">
+    <div class="container" style="margin-top: 30px;">
         <div class="section-content">
             <button class="btn btn-primary" onclick="showAddBeneficiaryModal()"><i class="fas fa-plus"></i> إضافة مستفيد جديد</button>
-            <table class="data-table" id="beneficiariesTable">
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>رقم الهوية</th>
-                        <th>الهاتف</th>
-                        <th>العنوان</th>
-                        <th>عدد أفراد الأسرة</th>
-                        <th>الحالة الصحية</th>
-                        <th>تاريخ التسجيل</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody id="beneficiariesBody"></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="data-table" id="beneficiariesTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الرقم الوطني</th>
+                            <th>أفراد الأسرة</th>
+                            <th>رقم الوظيفي</th>
+                            <th>الهاتف</th>
+                            <th>العنوان</th>
+                            <th>عدد أفراد الأسرة</th>
+                            <th>الحالة الصحية</th>
+                            <th>الجنس</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>إجراءات</th>
+                        </thead>
+                    <tbody id="beneficiariesBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -52,8 +56,12 @@
                     <input type="text" id="benName" required>
                 </div>
                 <div class="form-group">
-                    <label>رقم الهوية</label>
+                    <label>رقم الوظيفي</label>
                     <input type="text" id="benIdNumber" required>
+                </div>
+                <div class="form-group">
+                    <label>الرقم الوطني</label>
+                    <input type="text" id="benNationalId">
                 </div>
                 <div class="form-group">
                     <label>رقم الهاتف</label>
@@ -69,9 +77,28 @@
                         <input type="number" id="benFamily" value="1">
                     </div>
                     <div class="form-group">
-                        <label>الحالة الصحية</label>
+                        <label>الحالة الصحية (للمستفيد الرئيسي)</label>
                         <input type="text" id="benHealth" placeholder="جيد - يحتاج رعاية - ...">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label>الجنس</label>
+                    <select id="benGender">
+                        <option value="male">ذكر</option>
+                        <option value="female">أنثى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>أفراد الأسرة (الاسم - الرقم الوطني - الحالة الصحية)</label>
+                    <div id="familyMembersContainer">
+                        <div class="family-member-row">
+                            <input type="text" placeholder="الاسم" class="family-name" style="width: 30%; margin-left: 5px;">
+                            <input type="text" placeholder="الرقم الوطني" class="family-nationalId" style="width: 30%; margin-left: 5px;">
+                            <input type="text" placeholder="الحالة الصحية" class="family-health" style="width: 30%;">
+                            <button type="button" class="btn btn-sm btn-danger remove-family" style="width: 10%;">حذف</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="addFamilyMemberRow()">+ إضافة فرد</button>
                 </div>
                 <button type="submit" class="btn btn-primary">إضافة</button>
             </form>

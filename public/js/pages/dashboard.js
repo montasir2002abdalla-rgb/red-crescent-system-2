@@ -1,7 +1,4 @@
-// js/pages/dashboard.js (معدل لإزالة تكرار الإشعارات)
-
 // js/pages/dashboard.js
-
 const user = requireAuth();
 updateUserDisplay();
 
@@ -47,7 +44,7 @@ function buildSidebar() {
         html += `</ul></div>`;
     }
 
-    // إضافة عنصر الإشعارات مرة واحدة فقط للجميع (مع عداد)
+    // إضافة عنصر الإشعارات
     html += `<div class="nav-section" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;"><ul>`;
     html += `<li><a href="notifications.html" class="nav-link" id="notificationsLink">`;
     html += `<i class="fas fa-bell"></i> <span>الإشعارات</span>`;
@@ -55,15 +52,13 @@ function buildSidebar() {
     html += `</a></li>`;
     html += `</ul></div>`;
 
-    // إضافة عنصر تغيير كلمة المرور في الأسفل
+    // تغيير كلمة المرور
     html += `<div class="nav-section"><ul>`;
     html += `<li><a href="#" class="nav-link" onclick="showChangePasswordModal()"><i class="fas fa-key"></i> <span>تغيير كلمة المرور</span></a></li>`;
     html += `</ul></div>`;
 
     nav.innerHTML = html;
 }
-
-
 
 async function loadSection(section) {
     const content = document.getElementById('mainContent');
@@ -130,25 +125,34 @@ async function loadSection(section) {
                         <div class="count">${stats.donations || 0}</div>
                         <div class="label">عدد تبرعاتي</div>
                     </div>
-                    <div class="stat-card" onclick="window.location.href='financial-report.html'">
+                    <div class="stat-card" onclick="loadSection('myDonations')">
                         <i class="fas fa-money-bill"></i>
-                        <div class="count">${stats.totalIncome || 0}</div>
+                        <div class="count">${stats.totalDonationsForUser || 0}</div>
                         <div class="label">إجمالي تبرعاتي</div>
                     </div>
                 </div>`;
             } else if (user.role === 'beneficiary') {
-                statsHtml = `<div class="quick-stats">
-                    <div class="stat-card" onclick="loadSection('myRequests')">
-                        <i class="fas fa-clock"></i>
-                        <div class="count">${stats.pendingRequests || 0}</div>
-                        <div class="label">طلباتي المعلقة</div>
-                    </div>
-                    <div class="stat-card" onclick="window.location.href='requests-report.html'">
-                        <i class="fas fa-check-circle"></i>
-                        <div class="count">${stats.completedRequests || 0}</div>
-                        <div class="label">الطلبات المكتملة</div>
-                    </div>
-                </div>`;
+                try {
+                    const beneficiaries = await getBeneficiaries();
+                    const myBeneficiary = beneficiaries.find(b => b.userId === user.id);
+                    if (myBeneficiary) {
+                        const allRequests = await getAssistanceRequests();
+                        const myRequests = allRequests.filter(r => r.beneficiaryId === myBeneficiary.id);
+                        const pendingCount = myRequests.filter(r => r.status === 'pending').length;
+                        // إزالة بطاقة الطلبات المكتملة للمستفيد
+                        statsHtml = `<div class="quick-stats">
+                            <div class="stat-card" onclick="loadSection('myRequests')">
+                                <i class="fas fa-clock"></i>
+                                <div class="count">${pendingCount}</div>
+                                <div class="label">طلباتي المعلقة</div>
+                            </div>
+                        </div>`;
+                    } else {
+                        statsHtml = `<p>لم يتم العثور على بيانات المستفيد</p>`;
+                    }
+                } catch (error) {
+                    statsHtml = `<p class="error">حدث خطأ في تحميل البيانات</p>`;
+                }
             } else if (user.role === 'employee' || user.role === 'volunteer') {
                 statsHtml = `<div class="quick-stats">
                     <div class="stat-card" onclick="window.location.href='beneficiaries-report.html'">
@@ -160,6 +164,11 @@ async function loadSection(section) {
                         <i class="fas fa-clock"></i>
                         <div class="count">${stats.pendingRequests}</div>
                         <div class="label">طلبات معلقة</div>
+                    </div>
+                    <div class="stat-card" onclick="window.location.href='requests-report.html'">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="count">${stats.completedRequests || 0}</div>
+                        <div class="label">طلبات مكتملة</div>
                     </div>
                 </div>`;
             }
@@ -184,18 +193,20 @@ async function loadSection(section) {
             let rows = '';
             donations.forEach(d => {
                 rows += `<tr>
-                    <td>${d.amount}</td>
-                    <td>${d.paymentMethod}</td>
-                    <td><span class="status ${d.status}">${d.status}</span></td>
-                    <td>${new Date(d.createdAt).toLocaleDateString('ar-EG')}</td>
-                </tr>`;
+                    <td data-label="المبلغ">${d.amount}  </td>
+                    <td data-label="طريقة الدفع">${d.paymentMethod}  </td>
+                    <td data-label="الحالة"><span class="status ${d.status}">${d.status}</span>  </td>
+                    <td data-label="التاريخ">${new Date(d.createdAt).toLocaleDateString('ar-EG')}  </td>
+                 </tr>`;
             });
             content.innerHTML = `
                 <h2><i class="fas fa-history"></i> تبرعاتي السابقة</h2>
-                <table class="data-table">
-                    <thead><tr><th>المبلغ</th><th>طريقة الدفع</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="4">لا توجد تبرعات</td></tr>'}</tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>المبلغ</th><th>طريقة الدفع</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                        <tbody>${rows || '<tr><td colspan="4">لا توجد تبرعات</td></tr>'}</tbody>
+                    </table>
+                </div>
             `;
         } catch (error) {
             content.innerHTML = `<p class="error">حدث خطأ</p>`;
@@ -209,18 +220,20 @@ async function loadSection(section) {
             let rows = '';
             myRequests.forEach(r => {
                 rows += `<tr>
-                    <td>${r.requestType}</td>
-                    <td>${r.description.substring(0,30)}...</td>
-                    <td><span class="status ${r.status}">${r.status}</span></td>
-                    <td>${new Date(r.createdAt).toLocaleDateString('ar-EG')}</td>
-                </tr>`;
+                    <td data-label="النوع">${r.requestType}  </td>
+                    <td data-label="الوصف">${r.description.substring(0,30)}...  </td>
+                    <td data-label="الحالة"><span class="status ${r.status}">${r.status === 'pending' ? 'معلق' : r.status === 'in_progress' ? 'قيد التنفيذ' : r.status === 'completed' ? 'مكتمل' : 'مرفوض'}</span>  </td>
+                    <td data-label="التاريخ">${new Date(r.createdAt).toLocaleDateString('ar-EG')}  </td>
+                 </tr>`;
             });
             content.innerHTML = `
                 <h2><i class="fas fa-list"></i> طلبات المساعدة الخاصة بي</h2>
-                <table class="data-table">
-                    <thead><tr><th>النوع</th><th>الوصف</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="4">لا توجد طلبات</td></tr>'}</tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>النوع</th><th>الوصف</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                        <tbody>${rows || '<tr><td colspan="4">لا توجد طلبات</td></tr>'}</tbody>
+                    </table>
+                </div>
             `;
         } catch (error) {
             content.innerHTML = `<p class="error">حدث خطأ</p>`;
@@ -249,19 +262,15 @@ async function loadRecentActivities() {
     }
 }
 
-// دالة تحميل عدد الإشعارات غير المقروءة
 async function loadNotificationCount() {
     try {
-        const complaints = await getComplaints(); // تعيد جميع الشكاوى/التنبيهات
+        const complaints = await getComplaints();
         let unreadCount = 0;
 
-        // تحديد عدد الإشعارات غير المقروءة حسب دور المستخدم
         if (user.role === 'manager' || user.role === 'inventory_keeper' || user.role === 'employee') {
-            // المستقبلون: كل التنبيهات والشكاوى (يمكن تحسينها بحقل isRead)
-            unreadCount = complaints.length;
+            unreadCount = complaints.filter(c => !c.read).length;
         } else if (user.role === 'donor' || user.role === 'beneficiary') {
-            // المرسلون: فقط الرسائل التي أرسلوها
-            unreadCount = complaints.filter(c => c.userId === user.id || c.senderId === user.id).length;
+            unreadCount = complaints.filter(c => c.userId === user.id && !c.read).length;
         }
 
         if (unreadCount > 0) {
@@ -276,17 +285,10 @@ async function loadNotificationCount() {
         }
     } catch (error) {
         console.error('فشل تحميل عدد الإشعارات:', error);
-        // لا نظهر العداد في حال الخطأ
     }
 }
 
-document.getElementById('globalSearch')?.addEventListener('input', function(e) {
-    const query = e.target.value.trim();
-    if (query.length > 2) {
-        console.log('بحث عن:', query);
-    }
-});
-// دالة لفتح/إغلاق القائمة على الجوال
+// دوال القائمة للجوال
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay') || createOverlay();
@@ -294,7 +296,6 @@ function toggleMobileMenu() {
     overlay.classList.toggle('active');
 }
 
-// إنشاء طبقة الخلفية المعتمة إذا لم تكن موجودة
 function createOverlay() {
     const overlay = document.createElement('div');
     overlay.id = 'sidebarOverlay';
@@ -309,14 +310,12 @@ function closeMobileMenu() {
     document.getElementById('sidebarOverlay').classList.remove('active');
 }
 
-// استدعاء createOverlay عند تحميل الصفحة للتأكد من وجودها
 document.addEventListener('DOMContentLoaded', function() {
     if (!document.getElementById('sidebarOverlay')) {
         createOverlay();
     }
 });
 
-// إضافة مستمع لتغيير حجم الشاشة لإغلاق القائمة إذا أصبحت الشاشة كبيرة
 window.addEventListener('resize', function() {
     if (window.innerWidth > 768) {
         const sidebar = document.getElementById('sidebar');
@@ -337,6 +336,4 @@ function closeNotifications() {
 
 buildSidebar();
 loadSection('dashboard');
-
-// تحميل عدد الإشعارات بعد ثانية لضمان تحميل الصفحة
 setTimeout(loadNotificationCount, 1000);

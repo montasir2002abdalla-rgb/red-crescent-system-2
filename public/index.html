@@ -38,8 +38,8 @@
             
             <form id="loginFormElement">
                 <div class="form-group">
-                    <label><i class="fas fa-id-card"></i> الرقم الوظيفي</label>
-                    <input type="text" id="employeeId" required placeholder="أدخل الرقم الوظيفي">
+                    <label><i class="fas fa-id-card"></i> رقم الموظف</label>
+                    <input type="text" id="employeeId" required placeholder="أدخل رقم الموظف">
                 </div>
                 
                 <div class="form-group">
@@ -65,8 +65,9 @@
             
             <form id="registerFormElement">
                 <div class="form-group">
-                    <label><i class="fas fa-id-card"></i>الرقم الوظيفي (اذا كنت مستفيد او مانح  اكتب رقم من 5 خانات ) *</label>
-                    <input type="text" id="regEmployeeId" required placeholder="أدخل الرقم الوظيفي">
+                    <label><i class="fas fa-id-card"></i> رقم الموظف (إذا كنت موظفاً أو متطوعاً)</label>
+                    <input type="text" id="regEmployeeId" placeholder="أدخل رقم الموظف">
+                    <small class="form-text text-muted">إذا كنت مانحاً أو مستفيداً، اتركه فارغاً وسيتم إنشاء رقم تلقائياً.</small>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> الاسم الكامل *</label>
@@ -81,6 +82,14 @@
                         <label><i class="fas fa-phone"></i> رقم الهاتف *</label>
                         <input type="tel" id="phone" required placeholder="09XXXXXXXX">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-venus-mars"></i> الجنس *</label>
+                    <select id="gender" required>
+                        <option value="">اختر الجنس</option>
+                        <option value="male">ذكر</option>
+                        <option value="female">أنثى</option>
+                    </select>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -124,15 +133,33 @@
                 </div>
 
                 <div id="beneficiaryFields" class="role-fields" style="display: none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>عدد أفراد الأسرة</label>
-                            <input type="number" id="familySize" min="1" max="15" value="1">
+                    <div class="form-group">
+                        <label>الرقم الوطني</label>
+                        <input type="text" id="nationalId">
+                    </div>
+                    <div class="form-group">
+                        <label>الحالة الصحية (للمستفيد الرئيسي)</label>
+                        <input type="text" id="mainHealthStatus" placeholder="جيد - يحتاج رعاية - ...">
+                    </div>
+                    <div class="form-group">
+                        <label>عدد أفراد الأسرة</label>
+                        <input type="number" id="familySize" min="1" max="15" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>أفراد الأسرة (الاسم - الرقم الوطني - الحالة الصحية)</label>
+                        <div id="familyMembersContainer">
+                            <div class="family-member-row">
+                                <input type="text" placeholder="الاسم" class="family-name" style="width: 30%; margin-left: 5px;">
+                                <input type="text" placeholder="الرقم الوطني" class="family-nationalId" style="width: 30%; margin-left: 5px;">
+                                <input type="text" placeholder="الحالة الصحية" class="family-health" style="width: 30%;">
+                                <button type="button" class="btn btn-sm btn-danger remove-family" style="width: 10%;">حذف</button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>المدينة</label>
-                            <input type="text" id="city" placeholder="المدينة">
-                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addFamilyMemberRow()">+ إضافة فرد</button>
+                    </div>
+                    <div class="form-group">
+                        <label>المدينة</label>
+                        <input type="text" id="city" placeholder="المدينة">
                     </div>
                 </div>
                 
@@ -204,12 +231,34 @@
             document.getElementById('registerForm').style.display = 'block';
         }
 
+        function addFamilyMemberRow() {
+            const container = document.getElementById('familyMembersContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'family-member-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="الاسم" class="family-name" style="width: 30%; margin-left: 5px;">
+                <input type="text" placeholder="الرقم الوطني" class="family-nationalId" style="width: 30%; margin-left: 5px;">
+                <input type="text" placeholder="الحالة الصحية" class="family-health" style="width: 30%;">
+                <button type="button" class="btn btn-sm btn-danger remove-family" style="width: 10%;">حذف</button>
+            `;
+            container.appendChild(newRow);
+            newRow.querySelector('.remove-family').addEventListener('click', function() {
+                newRow.remove();
+            });
+        }
+
         function toggleRoleFields() {
             const role = document.getElementById('registerRole').value;
             document.querySelectorAll('.role-fields').forEach(el => el.style.display = 'none');
             if (role === 'employee') document.getElementById('employeeFields').style.display = 'block';
             else if (role === 'donor') document.getElementById('donorFields').style.display = 'block';
-            else if (role === 'beneficiary') document.getElementById('beneficiaryFields').style.display = 'block';
+            else if (role === 'beneficiary') {
+                document.getElementById('beneficiaryFields').style.display = 'block';
+                // إضافة صف افتراضي لأفراد الأسرة إذا كان فارغاً
+                if (document.getElementById('familyMembersContainer').children.length === 0) {
+                    addFamilyMemberRow();
+                }
+            }
         }
 
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
@@ -234,18 +283,34 @@
                 alert('كلمتا المرور غير متطابقتين');
                 return;
             }
+            const role = document.getElementById('registerRole').value;
+            let familyMembers = [];
+            let mainHealthStatus = '';
+            if (role === 'beneficiary') {
+                mainHealthStatus = document.getElementById('mainHealthStatus').value || '';
+                document.querySelectorAll('#familyMembersContainer .family-member-row').forEach(row => {
+                    const name = row.querySelector('.family-name')?.value;
+                    const nationalId = row.querySelector('.family-nationalId')?.value;
+                    const healthStatus = row.querySelector('.family-health')?.value;
+                    if (name && nationalId) familyMembers.push({ name, nationalId, healthStatus: healthStatus || '' });
+                });
+            }
             const userData = {
                 employeeId: document.getElementById('regEmployeeId').value,
                 name: document.getElementById('fullName').value,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 password: password,
-                role: document.getElementById('registerRole').value,
+                role: role,
                 qualifications: document.getElementById('qualifications')?.value || '',
                 motivation: document.getElementById('motivation')?.value || '',
                 donorType: document.getElementById('donorType')?.value || '',
                 familySize: document.getElementById('familySize')?.value || 1,
-                city: document.getElementById('city')?.value || ''
+                city: document.getElementById('city')?.value || '',
+                gender: document.getElementById('gender').value,
+                nationalId: document.getElementById('nationalId')?.value || '',
+                healthStatus: mainHealthStatus,
+                familyMembersJSON: JSON.stringify(familyMembers)
             };
             try {
                 const result = await register(userData);

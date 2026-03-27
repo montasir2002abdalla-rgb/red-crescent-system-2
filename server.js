@@ -40,6 +40,7 @@ function initDatabase() {
             qualifications TEXT,
             motivation TEXT,
             joinDate TEXT,
+            gender TEXT,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
@@ -66,6 +67,9 @@ function initDatabase() {
             address TEXT,
             familyMembers INTEGER,
             healthStatus TEXT,
+            gender TEXT,
+            nationalId TEXT,
+            familyMembersJSON TEXT,
             registeredBy INTEGER,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(userId) REFERENCES users(id),
@@ -110,14 +114,15 @@ function initDatabase() {
             lastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
-        // جدول المعاملات المالية (إيرادات ومصروفات)
+        // جدول المعاملات المالية
         db.run(`CREATE TABLE IF NOT EXISTS financial_transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             donationId INTEGER,
             amount REAL,
-            type TEXT, -- 'income' or 'expense'
+            type TEXT,
             description TEXT,
             createdBy INTEGER,
+            beneficiaryId INTEGER,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(donationId) REFERENCES donations(id),
             FOREIGN KEY(createdBy) REFERENCES users(id)
@@ -141,6 +146,7 @@ function initDatabase() {
             userRole TEXT,
             message TEXT,
             type TEXT,
+            read INTEGER DEFAULT 0,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(userId) REFERENCES users(id)
         )`);
@@ -158,33 +164,61 @@ function initDatabase() {
             FOREIGN KEY(assignedTo) REFERENCES users(id)
         )`);
 
+        // إضافة أعمدة إضافية إذا لم تكن موجودة
+        db.all("PRAGMA table_info(beneficiaries)", (err, columns) => {
+            if (!err && columns) {
+                if (!columns.some(c => c.name === 'nationalId')) {
+                    db.run("ALTER TABLE beneficiaries ADD COLUMN nationalId TEXT");
+                    console.log('✅ تم إضافة عمود nationalId إلى beneficiaries');
+                }
+                if (!columns.some(c => c.name === 'familyMembersJSON')) {
+                    db.run("ALTER TABLE beneficiaries ADD COLUMN familyMembersJSON TEXT");
+                    console.log('✅ تم إضافة عمود familyMembersJSON إلى beneficiaries');
+                }
+            }
+        });
+        db.all("PRAGMA table_info(users)", (err, columns) => {
+            if (!err && columns && !columns.some(c => c.name === 'gender')) {
+                db.run("ALTER TABLE users ADD COLUMN gender TEXT");
+                console.log('✅ تم إضافة عمود gender إلى جدول users');
+            }
+        });
+        db.all("PRAGMA table_info(complaints)", (err, columns) => {
+            if (!err && columns && !columns.some(c => c.name === 'read')) {
+                db.run("ALTER TABLE complaints ADD COLUMN read INTEGER DEFAULT 0");
+                console.log('✅ تم إضافة عمود read إلى جدول complaints');
+            }
+        });
+        db.all("PRAGMA table_info(financial_transactions)", (err, columns) => {
+            if (!err && columns && !columns.some(c => c.name === 'beneficiaryId')) {
+                db.run("ALTER TABLE financial_transactions ADD COLUMN beneficiaryId INTEGER");
+                console.log('✅ تم إضافة عمود beneficiaryId إلى financial_transactions');
+            }
+        });
+
         // إنشاء مستخدمين افتراضيين
         const hashedPasswordAdmin = bcrypt.hashSync('admin123', 10);
         const hashedPasswordKeeper = bcrypt.hashSync('keeper123', 10);
 
-        // مدير النظام
         db.get(`SELECT * FROM users WHERE employeeId = ?`, ['ADMIN001'], (err, row) => {
             if (!row) {
-                db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, joinDate) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    ['ADMIN001', 'مدير النظام', 'admin@redcrescent.org', '0912345678', hashedPasswordAdmin, 'manager', 'active', 1, new Date().toISOString().split('T')[0]]
+                db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, joinDate, gender) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    ['ADMIN001', 'مدير النظام', 'admin@redcrescent.org', '0912345678', hashedPasswordAdmin, 'manager', 'active', 1, new Date().toISOString().split('T')[0], 'male']
                 );
                 console.log('👤 تم إنشاء مستخدم مدير افتراضي: ADMIN001 / admin123');
             }
         });
 
-        // أمين مخزن
         db.get(`SELECT * FROM users WHERE employeeId = ?`, ['KEEPER001'], (err, row) => {
             if (!row) {
-                db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, joinDate) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    ['KEEPER001', 'أمين المخزن', 'keeper@redcrescent.org', '0912345679', hashedPasswordKeeper, 'inventory_keeper', 'active', 1, new Date().toISOString().split('T')[0]]
+                db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, joinDate, gender) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    ['KEEPER001', 'أمين المخزن', 'keeper@redcrescent.org', '0912345679', hashedPasswordKeeper, 'inventory_keeper', 'active', 1, new Date().toISOString().split('T')[0], 'male']
                 );
                 console.log('👤 تم إنشاء مستخدم أمين مخزن افتراضي: KEEPER001 / keeper123');
             }
         });
-
-     
     });
 }
 
@@ -247,7 +281,7 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
-// تغيير كلمة المرور (جديد)
+// تغيير كلمة المرور
 app.post('/api/auth/change-password', authenticateToken, (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const userId = req.user.id;
@@ -267,9 +301,27 @@ app.post('/api/auth/change-password', authenticateToken, (req, res) => {
     });
 });
 
-// تسجيل مستخدم جديد
-app.post('/api/register', (req, res) => {
-    const { employeeId, name, email, phone, password, role, qualifications, motivation, familySize, city, donorType } = req.body;
+// تسجيل مستخدم جديد (يدعم الحالة الصحية)
+app.post('/api/register', async (req, res) => {
+    const { 
+        employeeId, name, email, phone, password, role, 
+        qualifications, motivation, familySize, city, donorType, gender,
+        nationalId, familyMembersJSON, healthStatus 
+    } = req.body;
+    let finalEmployeeId = employeeId;
+    if ((role === 'donor' || role === 'beneficiary') && (!employeeId || employeeId.trim() === '')) {
+        finalEmployeeId = `${role === 'donor' ? 'DON' : 'BEN'}_${Date.now()}`;
+    } else if (employeeId) {
+        const existing = await new Promise((resolve, reject) => {
+            db.get(`SELECT id FROM users WHERE employeeId = ?`, [employeeId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        if (existing) {
+            return res.status(400).json({ error: 'رقم الموظف موجود مسبقاً' });
+        }
+    }
     const hashedPassword = bcrypt.hashSync(password, 10);
     const joinDate = new Date().toISOString().split('T')[0];
     let approved = 0;
@@ -278,28 +330,41 @@ app.post('/api/register', (req, res) => {
         approved = 1;
         status = 'active';
     }
-    db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, qualifications, motivation, joinDate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [employeeId, name, email, phone, hashedPassword, role, status, approved, qualifications, motivation, joinDate],
+    db.run(`INSERT INTO users (employeeId, name, email, phone, password, role, status, approved, qualifications, motivation, joinDate, gender)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [finalEmployeeId, name, email, phone, hashedPassword, role, status, approved, qualifications, motivation, joinDate, gender],
         function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE')) {
-                    return res.status(400).json({ error: 'الرقم الوظيفي أو البريد الإلكتروني موجود مسبقاً' });
+                    return res.status(400).json({ error: 'رقم الموظف أو البريد الإلكتروني موجود مسبقاً' });
                 }
                 return res.status(500).json({ error: err.message });
             }
             if (role === 'beneficiary') {
-                db.run(`INSERT INTO beneficiaries (userId, name, idNumber, phone, familyMembers) VALUES (?, ?, ?, ?, ?)`,
-                    [this.lastID, name, employeeId, phone, familySize || 1], (err2) => {
-                        if (err2) console.error(err2);
+                db.run(`INSERT INTO beneficiaries (userId, name, idNumber, phone, familyMembers, gender, nationalId, familyMembersJSON, healthStatus) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [this.lastID, name, finalEmployeeId, phone, familySize || 1, gender, nationalId || '', familyMembersJSON || '[]', healthStatus || ''], 
+                    (err2) => {
+                        if (err2) console.error('خطأ في إدراج المستفيد:', err2);
                     });
             }
-            res.status(201).json({ id: this.lastID, message: 'تم تقديم الطلب بنجاح  ' });
+            let successMessage = 'تم تقديم الطلب بنجاح';
+            if (role === 'donor' || role === 'beneficiary') {
+                successMessage = 'تم إنشاء حسابك بنجاح. سيتم إرسال الرقم الوظيفي إلى بريدك الإلكتروني ورقم هاتفك بعد المراجعة.';
+            }
+            res.status(201).json({ id: this.lastID, message: successMessage });
         }
     );
 });
 
-// إدارة المستخدمين (للمدير)
+// إدارة المستخدمين
+app.get('/api/users', authenticateToken, requireManager, (req, res) => {
+    db.all(`SELECT * FROM users ORDER BY createdAt DESC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
 app.get('/api/users/pending', authenticateToken, requireManager, (req, res) => {
     db.all(`SELECT * FROM users WHERE status = 'pending'`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -327,6 +392,24 @@ app.post('/api/users/reject/:id', authenticateToken, requireManager, (req, res) 
     db.run(`DELETE FROM users WHERE id = ?`, [userId], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'تم رفض الطلب وحذفه' });
+    });
+});
+
+app.put('/api/users/:id', authenticateToken, requireManager, (req, res) => {
+    const { name, email, phone, role, status, gender } = req.body;
+    const id = req.params.id;
+    db.run(`UPDATE users SET name=?, email=?, phone=?, role=?, status=?, gender=? WHERE id=?`,
+        [name, email, phone, role, status, gender, id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'تم التحديث' });
+        });
+});
+
+app.delete('/api/users/:id', authenticateToken, requireManager, (req, res) => {
+    const id = req.params.id;
+    db.run(`DELETE FROM users WHERE id=?`, [id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'تم الحذف' });
     });
 });
 
@@ -367,14 +450,14 @@ app.delete('/api/inventory/:id', authenticateToken, requireManager, (req, res) =
     });
 });
 
-// التبرعات
+// التبرعات - حالة مكتملة فوراً
 app.post('/api/donations', authenticateToken, (req, res) => {
     const { amount, paymentMethod, transactionId } = req.body;
     const donorId = req.user.id;
     const donorName = req.user.name;
     db.run(`INSERT INTO donations (donorId, donorName, amount, paymentMethod, transactionId, status)
             VALUES (?, ?, ?, ?, ?, ?)`,
-        [donorId, donorName, amount, paymentMethod, transactionId, 'pending'],
+        [donorId, donorName, amount, paymentMethod, transactionId, 'completed'],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
             db.run(`INSERT INTO financial_transactions (donationId, amount, type, description, createdBy)
@@ -402,27 +485,56 @@ app.get('/api/donations', authenticateToken, (req, res) => {
     });
 });
 
-// المصروفات (للمدير فقط)
+// المصروفات (مع ربط المستفيد)
 app.post('/api/expenses', authenticateToken, requireManager, (req, res) => {
-    const { amount, description } = req.body;
+    const { amount, description, beneficiaryId } = req.body;
     const createdBy = req.user.id;
-    db.run(`INSERT INTO financial_transactions (amount, type, description, createdBy)
-            VALUES (?, ?, ?, ?)`,
-        [amount, 'expense', description, createdBy],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.status(201).json({ id: this.lastID, message: 'تم تسجيل الصرف' });
+    db.get(`SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as totalIncome,
+                   SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as totalExpenses
+            FROM financial_transactions`, [], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const balance = (row.totalIncome || 0) - (row.totalExpenses || 0);
+        if (amount > balance) {
+            return res.status(400).json({ error: `لا يمكن تسجيل صرف بقيمة ${amount} لأن الرصيد المتوفر ${balance} فقط` });
         }
-    );
+        db.run(`INSERT INTO financial_transactions (amount, type, description, createdBy, beneficiaryId)
+                VALUES (?, ?, ?, ?, ?)`,
+            [amount, 'expense', description, createdBy, beneficiaryId || null],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.status(201).json({ id: this.lastID, message: 'تم تسجيل الصرف' });
+            }
+        );
+    });
 });
 
 // المعاملات المالية
 app.get('/api/financial-transactions', authenticateToken, requireInventoryAccess, (req, res) => {
-    db.all(`SELECT ft.*, d.donorName FROM financial_transactions ft
+    db.all(`SELECT ft.*, d.donorName, b.name as beneficiaryName
+            FROM financial_transactions ft
             LEFT JOIN donations d ON ft.donationId = d.id
+            LEFT JOIN beneficiaries b ON ft.beneficiaryId = b.id
             ORDER BY ft.createdAt DESC`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
+    });
+});
+
+app.put('/api/financial-transactions/:id', authenticateToken, requireManager, (req, res) => {
+    const { amount, description, type } = req.body;
+    const id = req.params.id;
+    db.run(`UPDATE financial_transactions SET amount=?, description=?, type=? WHERE id=?`,
+        [amount, description, type, id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'تم التحديث' });
+        });
+});
+
+app.delete('/api/financial-transactions/:id', authenticateToken, requireManager, (req, res) => {
+    const id = req.params.id;
+    db.run(`DELETE FROM financial_transactions WHERE id=?`, [id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'تم الحذف' });
     });
 });
 
@@ -435,11 +547,11 @@ app.get('/api/beneficiaries', authenticateToken, (req, res) => {
 });
 
 app.post('/api/beneficiaries', authenticateToken, (req, res) => {
-    const { name, idNumber, phone, address, familyMembers, healthStatus } = req.body;
+    const { name, idNumber, phone, address, familyMembers, healthStatus, gender, nationalId, familyMembersJSON } = req.body;
     const registeredBy = req.user.id;
-    db.run(`INSERT INTO beneficiaries (name, idNumber, phone, address, familyMembers, healthStatus, registeredBy)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [name, idNumber, phone, address, familyMembers, healthStatus, registeredBy],
+    db.run(`INSERT INTO beneficiaries (name, idNumber, phone, address, familyMembers, healthStatus, gender, nationalId, familyMembersJSON, registeredBy)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name, idNumber, phone, address, familyMembers, healthStatus, gender, nationalId, familyMembersJSON, registeredBy],
         function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'رقم الهوية موجود مسبقاً' });
@@ -451,10 +563,10 @@ app.post('/api/beneficiaries', authenticateToken, (req, res) => {
 });
 
 app.put('/api/beneficiaries/:id', authenticateToken, (req, res) => {
-    const { name, phone, address, familyMembers, healthStatus } = req.body;
+    const { name, phone, address, familyMembers, healthStatus, gender, nationalId, familyMembersJSON } = req.body;
     const id = req.params.id;
-    db.run(`UPDATE beneficiaries SET name=?, phone=?, address=?, familyMembers=?, healthStatus=? WHERE id=?`,
-        [name, phone, address, familyMembers, healthStatus, id], function(err) {
+    db.run(`UPDATE beneficiaries SET name=?, phone=?, address=?, familyMembers=?, healthStatus=?, gender=?, nationalId=?, familyMembersJSON=? WHERE id=?`,
+        [name, phone, address, familyMembers, healthStatus, gender, nationalId, familyMembersJSON, id], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ message: 'تم التحديث' });
         });
@@ -628,7 +740,6 @@ app.post('/api/complaints', authenticateToken, (req, res) => {
     const { message, type } = req.body;
     const userId = req.user.id;
     const userRole = req.user.role;
-    // السماح فقط للمانحين والمستفيدين بإرسال الشكاوى والتنبيهات
     if (userRole !== 'donor' && userRole !== 'beneficiary') {
         return res.status(403).json({ error: 'غير مسموح لك بإرسال شكاوى أو تنبيهات' });
     }
@@ -641,9 +752,43 @@ app.post('/api/complaints', authenticateToken, (req, res) => {
     );
 });
 
+app.put('/api/complaints/read/:id', authenticateToken, (req, res) => {
+    const id = req.params.id;
+    const userId = req.user.id;
+    db.get(`SELECT * FROM complaints WHERE id = ?`, [id], (err, complaint) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!complaint) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+        if (req.user.role !== 'manager' && complaint.userId !== userId) {
+            return res.status(403).json({ error: 'غير مصرح لك' });
+        }
+        db.run(`UPDATE complaints SET read = 1 WHERE id = ?`, [id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'تم تحديد القراءة' });
+        });
+    });
+});
+
+app.delete('/api/complaints/:id', authenticateToken, (req, res) => {
+    const id = req.params.id;
+    const userId = req.user.id;
+    const role = req.user.role;
+    db.get(`SELECT * FROM complaints WHERE id = ?`, [id], (err, complaint) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!complaint) return res.status(404).json({ error: 'الرسالة غير موجودة' });
+        if (role !== 'manager' && complaint.userId !== userId) {
+            return res.status(403).json({ error: 'غير مصرح لك' });
+        }
+        db.run(`DELETE FROM complaints WHERE id = ?`, [id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'تم الحذف' });
+        });
+    });
+});
+
 // الإحصائيات
 app.get('/api/stats', authenticateToken, (req, res) => {
     const role = req.user.role;
+    const userId = req.user.id;
     let stats = {};
     const queries = {
         beneficiaries: `SELECT COUNT(*) as count FROM beneficiaries`,
@@ -652,6 +797,7 @@ app.get('/api/stats', authenticateToken, (req, res) => {
         totalIncome: `SELECT SUM(amount) as total FROM financial_transactions WHERE type='income'`,
         totalExpenses: `SELECT SUM(amount) as total FROM financial_transactions WHERE type='expense'`,
         pendingRequests: `SELECT COUNT(*) as count FROM assistance_requests WHERE status='pending'`,
+        completedRequests: `SELECT COUNT(*) as count FROM assistance_requests WHERE status='completed'`,
         pendingUsers: role === 'manager' ? `SELECT COUNT(*) as count FROM users WHERE status='pending'` : null,
         lowStock: (role === 'manager' || role === 'inventory_keeper') ? `SELECT COUNT(*) as count FROM inventory WHERE quantity <= minStock` : null,
         activeTeams: role === 'manager' ? `SELECT COUNT(*) as count FROM emergency_teams WHERE status='active'` : null
@@ -664,6 +810,7 @@ app.get('/api/stats', authenticateToken, (req, res) => {
         db.get(queries.totalExpenses, [], (err, row) => { stats.totalExpenses = row?.total || 0; });
         stats.totalFunds = stats.totalIncome - stats.totalExpenses;
         db.get(queries.pendingRequests, [], (err, row) => { stats.pendingRequests = row?.count || 0; });
+        db.get(queries.completedRequests, [], (err, row) => { stats.completedRequests = row?.count || 0; });
         if (queries.pendingUsers) {
             db.get(queries.pendingUsers, [], (err, row) => { stats.pendingUsers = row?.count || 0; });
         }
@@ -673,11 +820,17 @@ app.get('/api/stats', authenticateToken, (req, res) => {
         if (queries.activeTeams) {
             db.get(queries.activeTeams, [], (err, row) => { stats.activeTeams = row?.count || 0; });
         }
-        setTimeout(() => res.json(stats), 100);
+        if (role === 'donor') {
+            db.get(`SELECT SUM(amount) as total FROM donations WHERE donorId = ?`, [userId], (err, row) => {
+                stats.totalDonationsForUser = row?.total || 0;
+                setTimeout(() => res.json(stats), 100);
+            });
+        } else {
+            setTimeout(() => res.json(stats), 100);
+        }
     });
 });
 
-// تشغيل الخادم
 app.listen(PORT, () => {
     console.log(`🚀 الخادم يعمل على http://localhost:${PORT}`);
 });

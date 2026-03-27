@@ -57,10 +57,14 @@ async function loadNotifications() {
         const notifications = all.filter(c => c.type === 'notification');
         const container = document.getElementById('notificationsList');
         container.innerHTML = notifications.map(n => `
-            <div class="complaint-item">
-                <p><strong>من: ${n.senderName || n.userName || 'غير معروف'}</strong></p>
+            <div class="complaint-item ${n.read ? 'read' : 'unread'}">
+                <p><strong>من: ${n.userRole === 'donor' ? 'مانح' : n.userRole === 'beneficiary' ? 'مستفيد' : 'غير معروف'}</strong></p>
                 <p>${n.message}</p>
                 <small>${new Date(n.createdAt).toLocaleString('ar-EG')}</small>
+                <div class="complaint-actions">
+                    ${!n.read ? `<button class="btn btn-sm btn-success" onclick="markAsRead(${n.id})">قراءة</button>` : ''}
+                    ${(user.role === 'manager') ? `<button class="btn btn-sm btn-danger" onclick="deleteMessage(${n.id})">حذف</button>` : ''}
+                </div>
             </div>
         `).join('') || '<p>لا توجد تنبيهات</p>';
     } catch (error) {
@@ -74,10 +78,14 @@ async function loadComplaints() {
         const complaints = all.filter(c => c.type === 'complaint');
         const container = document.getElementById('complaintsList');
         container.innerHTML = complaints.map(c => `
-            <div class="complaint-item">
-                <p><strong>من: ${c.senderName || c.userName || 'غير معروف'}</strong></p>
+            <div class="complaint-item ${c.read ? 'read' : 'unread'}">
+                <p><strong>من: ${c.userRole === 'donor' ? 'مانح' : c.userRole === 'beneficiary' ? 'مستفيد' : 'غير معروف'}</strong></p>
                 <p>${c.message}</p>
                 <small>${new Date(c.createdAt).toLocaleString('ar-EG')}</small>
+                <div class="complaint-actions">
+                    ${!c.read ? `<button class="btn btn-sm btn-success" onclick="markAsRead(${c.id})">قراءة</button>` : ''}
+                    ${(user.role === 'manager') ? `<button class="btn btn-sm btn-danger" onclick="deleteMessage(${c.id})">حذف</button>` : ''}
+                </div>
             </div>
         `).join('') || '<p>لا توجد شكاوى</p>';
     } catch (error) {
@@ -88,19 +96,48 @@ async function loadComplaints() {
 async function loadMyMessages() {
     try {
         const all = await getComplaints();
-        const myMessages = all.filter(c => c.userId === user.id || c.senderId === user.id);
+        const myMessages = all.filter(c => c.userId === user.id);
         const container = document.getElementById('myMessagesList');
         container.innerHTML = myMessages.map(m => `
-            <div class="complaint-item">
+            <div class="complaint-item ${m.read ? 'read' : 'unread'}">
                 <p><span class="badge ${m.type}">${m.type === 'notification' ? 'تنبيه' : 'شكوى'}</span></p>
                 <p>${m.message}</p>
                 <small>${new Date(m.createdAt).toLocaleString('ar-EG')}</small>
+                <div class="complaint-actions">
+                    ${(user.role === 'manager' || m.userId === user.id) ? `<button class="btn btn-sm btn-danger" onclick="deleteMessage(${m.id})">حذف</button>` : ''}
+                </div>
             </div>
         `).join('') || '<p>لم ترسل أي رسائل بعد</p>';
     } catch (error) {
         alert('خطأ في تحميل رسائلك: ' + error.message);
     }
 }
+
+window.markAsRead = async (id) => {
+    try {
+        await markComplaintAsRead(id);
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) showTab(activeTab.innerText === 'التنبيهات الواردة' ? 'notifications' :
+                                 activeTab.innerText === 'الشكاوى الواردة' ? 'complaints' :
+                                 activeTab.innerText === 'رسائلي' ? 'myMessages' : 'new');
+    } catch (error) {
+        alert('فشل تحديث الحالة: ' + error.message);
+    }
+};
+
+window.deleteMessage = async (id) => {
+    if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+        try {
+            await deleteComplaint(id);
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) showTab(activeTab.innerText === 'التنبيهات الواردة' ? 'notifications' :
+                                     activeTab.innerText === 'الشكاوى الواردة' ? 'complaints' :
+                                     activeTab.innerText === 'رسائلي' ? 'myMessages' : 'new');
+        } catch (error) {
+            alert('فشل الحذف: ' + error.message);
+        }
+    }
+};
 
 document.getElementById('complaintForm').addEventListener('submit', async (e) => {
     e.preventDefault();

@@ -38,6 +38,15 @@
         </div>
     </div>
 
+    <!-- نافذة تفاصيل المستخدم -->
+    <div id="userDetailsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserDetailsModal()">&times;</span>
+            <h3>تفاصيل المستخدم</h3>
+            <div id="userDetailsContent"></div>
+        </div>
+    </div>
+
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
@@ -57,6 +66,7 @@
                         <td>${getRoleName(u.role)}</td>
                         <td>${new Date(u.createdAt).toLocaleDateString('ar-EG')}</td>
                         <td>
+                            <button class="btn btn-info btn-sm" onclick="showDetails(${u.id})">تفاصيل</button>
                             <button class="btn btn-primary" onclick="approve(${u.id})">موافقة</button>
                             <button class="btn btn-secondary" onclick="reject(${u.id})">رفض</button>
                         </td>
@@ -88,6 +98,34 @@
                 }
             }
         };
+
+        window.showDetails = async (id) => {
+            try {
+                const users = await getPendingUsers();
+                const user = users.find(u => u.id === id);
+                if (user) {
+                    const detailsHtml = `
+                        <p><strong>الاسم:</strong> ${user.name}</p>
+                        <p><strong>الرقم الوظيفي:</strong> ${user.employeeId}</p>
+                        <p><strong>البريد الإلكتروني:</strong> ${user.email}</p>
+                        <p><strong>الهاتف:</strong> ${user.phone}</p>
+                        <p><strong>الجنس:</strong> ${user.gender === 'male' ? 'ذكر' : 'أنثى'}</p>
+                        <p><strong>الدور المطلوب:</strong> ${getRoleName(user.role)}</p>
+                        <p><strong>المؤهلات:</strong> ${user.qualifications || 'غير مدخلة'}</p>
+                        <p><strong>الدافع للانضمام:</strong> ${user.motivation || 'غير مدخل'}</p>
+                        <p><strong>تاريخ الطلب:</strong> ${new Date(user.createdAt).toLocaleDateString('ar-EG')}</p>
+                    `;
+                    document.getElementById('userDetailsContent').innerHTML = detailsHtml;
+                    document.getElementById('userDetailsModal').style.display = 'flex';
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+
+        function closeUserDetailsModal() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+        }
 
         loadPending();
     </script>

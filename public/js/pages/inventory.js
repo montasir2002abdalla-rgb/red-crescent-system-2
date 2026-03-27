@@ -1,37 +1,35 @@
-// التحقق من تسجيل الدخول والصلاحية
+// js/pages/inventory.js
 const user = requireAuth(['manager', 'inventory_keeper']);
 updateUserDisplay();
 
 let inventory = [];
 let financials = [];
 
-// تحميل جميع أصناف المخزون
 async function loadInventory() {
     try {
         inventory = await getInventory();
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = inventory.map(item => `
             <tr>
-                <td>${item.itemName}</td>
-                <td>${item.category}</td>
-                <td>${item.quantity}</td>
-                <td>${item.unit}</td>
-                <td>${item.minStock}</td>
-                <td>${new Date(item.lastUpdated).toLocaleString('ar-EG')}</td>
-                <td>
+                <td data-label="الاسم">${item.itemName}     </td>
+                <td data-label="التصنيف">${item.category}     </td>
+                <td data-label="الكمية">${item.quantity}     </td>
+                <td data-label="الوحدة">${item.unit}     </td>
+                <td data-label="الحد الأدنى">${item.minStock}     </td>
+                <td data-label="آخر تحديث">${new Date(item.lastUpdated).toLocaleString('ar-EG')}     </td>
+                <td data-label="إجراءات">
                     <button class="btn btn-secondary btn-sm" onclick="showUpdateModal(${item.id}, ${item.quantity})">تحديث</button>
                     ${user.role === 'manager' ? `
                         <button class="btn btn-danger btn-sm" onclick="handleDeleteItem(${item.id})"><i class="fas fa-trash"></i></button>
                     ` : ''}
-                </td>
-            </tr>
+                 </td>
+             </tr>
         `).join('');
     } catch (error) {
         alert(error.message);
     }
 }
 
-// تحميل المواد الطبية فقط
 async function loadMedicalItems() {
     try {
         const allItems = await getInventory();
@@ -39,27 +37,26 @@ async function loadMedicalItems() {
         const tbody = document.getElementById('medicalBody');
         tbody.innerHTML = medicalItems.map(item => `
             <tr>
-                <td>${item.itemName}</td>
-                <td>${item.subCategory || 'عام'}</td>
-                <td>${item.quantity}</td>
-                <td>${item.unit}</td>
-                <td>${item.expiryDate || 'غير محدد'}</td>
-                <td>${item.minStock}</td>
-                <td>${new Date(item.lastUpdated).toLocaleString('ar-EG')}</td>
-                <td>
+                <td data-label="الاسم">${item.itemName}     </td>
+                <td data-label="التصنيف الفرعي">${item.subCategory || 'عام'}     </td>
+                <td data-label="الكمية">${item.quantity}     </td>
+                <td data-label="الوحدة">${item.unit}     </td>
+                <td data-label="تاريخ الانتهاء">${item.expiryDate || 'غير محدد'}     </td>
+                <td data-label="الحد الأدنى">${item.minStock}     </td>
+                <td data-label="آخر تحديث">${new Date(item.lastUpdated).toLocaleString('ar-EG')}     </td>
+                <td data-label="إجراءات">
                     <button class="btn btn-secondary btn-sm" onclick="showUpdateModal(${item.id}, ${item.quantity})">تحديث</button>
                     ${user.role === 'manager' ? `
                         <button class="btn btn-danger btn-sm" onclick="handleDeleteItem(${item.id})"><i class="fas fa-trash"></i></button>
                     ` : ''}
-                </td>
-            </tr>
+                 </td>
+             </tr>
         `).join('');
     } catch (error) {
         alert(error.message);
     }
 }
 
-// تحميل المعاملات المالية
 async function loadFinancial() {
     try {
         financials = await getFinancialTransactions();
@@ -68,21 +65,29 @@ async function loadFinancial() {
         const totalExpenses = financials.reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0);
         const totalFunds = totalIncome - totalExpenses;
         document.getElementById('totalFunds').innerText = totalFunds;
-        tbody.innerHTML = financials.map(t => `
-            <tr>
-                <td>${t.amount}</td>
-                <td>${t.type === 'income' ? 'وارد' : 'صادر'}</td>
-                <td>${t.description || ''}</td>
-                <td>${t.donorName || ''}</td>
-                <td>${new Date(t.createdAt).toLocaleString('ar-EG')}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = financials.map(t => {
+            let party = '';
+            if (t.type === 'income') {
+                party = t.donorName || '';
+            } else {
+                party = t.beneficiaryName || '';
+            }
+            return `
+                <tr>
+                    <td data-label="المبلغ">${t.amount}     </td>
+                    <td data-label="النوع">${t.type === 'income' ? 'وارد' : 'صادر'}     </td>
+                    <td data-label="الوصف">${t.description || ''}     </td>
+                    <td data-label="المتبرع/المسؤول">${t.type === 'income' ? (t.donorName || '') : (t.createdBy ? 'مدير' : '')}     </td>
+                    <td data-label="المستفيد">${t.type === 'expense' ? (t.beneficiaryName || '-') : '-'}     </td>
+                    <td data-label="التاريخ">${new Date(t.createdAt).toLocaleString('ar-EG')}     </td>
+                 </tr>
+            `;
+        }).join('');
     } catch (error) {
         alert(error.message);
     }
 }
 
-// التبديل بين التبويبات
 function showTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -102,36 +107,29 @@ function showTab(tab) {
     }
 }
 
-// إظهار نافذة إضافة صنف
 function showAddItemModal() {
     document.getElementById('addItemModal').style.display = 'flex';
     document.getElementById('addItemForm').reset();
 }
 
-// إغلاق نافذة إضافة صنف
 function closeModal() {
     document.getElementById('addItemModal').style.display = 'none';
 }
 
-// إظهار نافذة تحديث الكمية
 function showUpdateModal(id, currentQty) {
     document.getElementById('updateItemId').value = id;
     document.getElementById('newQuantity').value = currentQty;
     document.getElementById('updateQuantityModal').style.display = 'flex';
 }
 
-// إغلاق نافذة تحديث الكمية
 function closeUpdateModal() {
     document.getElementById('updateQuantityModal').style.display = 'none';
 }
 
-// دالة حذف الصنف (تم تغيير الاسم لتجنب التكرار)
 async function handleDeleteItem(id) {
     if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
         try {
-            // استدعاء الدالة العامة من api.js
             await deleteInventoryItem(id);
-            // إعادة تحميل الجداول بعد الحذف
             loadInventory();
             loadMedicalItems();
         } catch (error) {
@@ -140,22 +138,38 @@ async function handleDeleteItem(id) {
     }
 }
 
-// إظهار نافذة تسجيل صرف
+async function loadBeneficiariesForExpense() {
+    try {
+        const beneficiaries = await getBeneficiaries();
+        const select = document.getElementById('expenseBeneficiaryId');
+        if (!select) return;
+        select.innerHTML = '<option value="">بدون مستفيد</option>';
+        beneficiaries.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = `${b.name} (${b.idNumber})`;
+            select.appendChild(opt);
+        });
+    } catch (error) {
+        console.error('خطأ في تحميل المستفيدين:', error);
+    }
+}
+
 function showExpenseModal() {
+    loadBeneficiariesForExpense();
     document.getElementById('expenseModal').style.display = 'flex';
 }
 
-// إغلاق نافذة تسجيل صرف
 function closeExpenseModal() {
     document.getElementById('expenseModal').style.display = 'none';
 }
 
-// معالج تقديم نموذج الصرف
 document.getElementById('expenseForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const expense = {
         amount: parseFloat(document.getElementById('expenseAmount').value),
-        description: document.getElementById('expenseDesc').value
+        description: document.getElementById('expenseDesc').value,
+        beneficiaryId: document.getElementById('expenseBeneficiaryId').value || null
     };
     try {
         await createExpense(expense);
@@ -166,7 +180,6 @@ document.getElementById('expenseForm')?.addEventListener('submit', async (e) => 
     }
 });
 
-// معالج تقديم نموذج إضافة صنف
 document.getElementById('addItemForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const item = {
@@ -188,7 +201,6 @@ document.getElementById('addItemForm').addEventListener('submit', async (e) => {
     }
 });
 
-// معالج تقديم نموذج تحديث الكمية
 document.getElementById('updateQuantityForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('updateItemId').value;
@@ -203,19 +215,16 @@ document.getElementById('updateQuantityForm').addEventListener('submit', async (
     }
 });
 
-// إظهار/إخفاء الحقول الفرعية عند تغيير التصنيف
 document.getElementById('category')?.addEventListener('change', function() {
     const isMedical = this.value === 'medical';
     document.getElementById('subCategoryGroup').style.display = isMedical ? 'block' : 'none';
     document.getElementById('expiryDateGroup').style.display = isMedical ? 'block' : 'none';
 });
 
-// إغلاق النوافذ المنبثقة عند النقر خارجها
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
 };
 
-// تحميل التبويب الافتراضي (جميع المواد)
 loadInventory();

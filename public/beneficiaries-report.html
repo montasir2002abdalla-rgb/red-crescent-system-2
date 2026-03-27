@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* تحسينات الجوال والتقرير */
         @media (max-width: 768px) {
             .stats-container { grid-template-columns: 1fr 1fr !important; }
             .charts-container { grid-template-columns: 1fr !important; }
@@ -29,6 +28,7 @@
             font-size: 2rem;
             color: var(--primary-color);
             margin-bottom: 10px;
+            margin-top: 20px;
         }
         .stat-card .count {
             font-size: 1.8rem;
@@ -63,7 +63,7 @@
         }
     </style>
 </head>
-<body>
+<body class="report-page">
     <header class="dashboard-header">
         <div class="header-left">
             <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
@@ -76,8 +76,7 @@
         </div>
     </header>
 
-    <div class="container" style="margin-top: 20px;">
-        <!-- إحصائيات سريعة -->
+    <div class="container" style="margin-top: 40px;">
         <div class="stats-container">
             <div class="stat-card">
                 <i class="fas fa-users"></i>
@@ -101,14 +100,36 @@
             </div>
         </div>
 
-        <!-- الرسوم البيانية -->
+        <div class="report-filters" style="margin-top: 25px;">
+            <input type="text" id="searchBeneficiaries" placeholder="بحث بالاسم أو رقم الهوية...">
+            <button class="btn btn-primary" onclick="printReport()">طباعة</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="data-table" id="beneficiariesTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الوظيفي</th>
+                        <th>الرقم الوطني</th>
+                        <th>الهاتف</th>
+                        <th>العنوان</th>
+                        <th>عدد أفراد الأسرة</th>
+                        <th>الحالة الصحية</th>
+                        <th>الجنس</th>
+                        <th>تاريخ التسجيل</th>
+                    </thead>
+                <tbody id="beneficiariesBody"></tbody>
+            </table>
+        </div>
+
         <div class="charts-container">
             <div class="chart-box">
                 <h3>توزيع المستفيدين حسب الجنس</h3>
                 <canvas id="genderChart"></canvas>
             </div>
             <div class="chart-box">
-                <h3>عدد المسجلين شهرياً (آخر 6 أشهر)</h3>
+                <h3>عدد المسجلين شهرياً</h3>
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
@@ -119,29 +140,57 @@
     <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script>
-        const user = requireAuth(['manager', 'inventory_keeper', 'employee']);
-        updateUserDisplay();
+        let allBeneficiaries = [];
+        let genderChart, monthlyChart;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const user = requireAuth(['manager', 'inventory_keeper', 'employee']);
+            updateUserDisplay();
+            await loadReport();
+        });
 
         async function loadReport() {
             try {
-                const beneficiaries = await getBeneficiaries();
-                
-                // إحصائيات عامة
-                document.getElementById('totalBeneficiaries').innerText = beneficiaries.length;
-                
-                // حساب الذكور والإناث (نفترض وجود حقل gender)
-                const male = beneficiaries.filter(b => b.gender === 'male' || b.gender === 'ذكر').length;
-                const female = beneficiaries.filter(b => b.gender === 'female' || b.gender === 'أنثى').length;
-                document.getElementById('maleCount').innerText = male;
-                document.getElementById('femaleCount').innerText = female;
-                
-                // الحالات الصحية (نفترض healthStatus ليس فارغاً أو يحتوي على كلمات مثل "مرض")
-                const healthIssues = beneficiaries.filter(b => b.healthStatus && b.healthStatus.trim() !== '' && b.healthStatus !== 'جيد').length;
-                document.getElementById('healthCases').innerText = healthIssues;
+                allBeneficiaries = await getBeneficiaries();
+                updateStatsAndCharts(allBeneficiaries);
+                renderTable(allBeneficiaries);
+            } catch (error) {
+                alert('خطأ في تحميل البيانات: ' + error.message);
+            }
+        }
 
-                // رسم بياني دائري للجنس
+        function renderTable(beneficiaries) {
+            const tbody = document.getElementById('beneficiariesBody');
+            tbody.innerHTML = beneficiaries.map(b => `
+                <tr>
+                    <td data-label="الاسم">${b.name}    </td>
+                    <td data-label="رقم الوظيفي">${b.idNumber}    </td>
+                    <td data-label="الرقم الوطني">${b.nationalId || ''}    </td>
+                    <td data-label="الهاتف">${b.phone}    </td>
+                    <td data-label="العنوان">${b.address || ''}    </td>
+                    <td data-label="عدد أفراد الأسرة">${b.familyMembers}    </td>
+                    <td data-label="الحالة الصحية">${b.healthStatus || ''}    </td>
+                    <td data-label="الجنس">${b.gender === 'male' ? 'ذكر' : 'أنثى'}    </td>
+                    <td data-label="تاريخ التسجيل">${new Date(b.createdAt).toLocaleDateString('ar-EG')}    </td>
+                 </tr>
+            `).join('');
+        }
+
+        function updateStatsAndCharts(beneficiaries) {
+            document.getElementById('totalBeneficiaries').innerText = beneficiaries.length;
+            const male = beneficiaries.filter(b => b.gender === 'male').length;
+            const female = beneficiaries.filter(b => b.gender === 'female').length;
+            document.getElementById('maleCount').innerText = male;
+            document.getElementById('femaleCount').innerText = female;
+            const healthIssues = beneficiaries.filter(b => b.healthStatus && b.healthStatus.trim() !== '' && b.healthStatus !== 'جيد').length;
+            document.getElementById('healthCases').innerText = healthIssues;
+
+            if (typeof Chart !== 'undefined') {
+                if (genderChart) genderChart.destroy();
+                if (monthlyChart) monthlyChart.destroy();
+
                 const ctxGender = document.getElementById('genderChart').getContext('2d');
-                new Chart(ctxGender, {
+                genderChart = new Chart(ctxGender, {
                     type: 'pie',
                     data: {
                         labels: ['ذكور', 'إناث'],
@@ -153,16 +202,14 @@
                     options: { responsive: true, maintainAspectRatio: true }
                 });
 
-                // رسم بياني للمسجلين شهرياً (آخر 6 أشهر)
                 const months = [];
-                const counts = [];
+                const monthCounts = new Array(6).fill(0);
                 const now = new Date();
                 for (let i = 5; i >= 0; i--) {
                     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                     months.push(d.toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }));
                 }
 
-                const monthCounts = new Array(6).fill(0);
                 beneficiaries.forEach(b => {
                     const regDate = new Date(b.createdAt);
                     const diffMonths = (now.getFullYear() - regDate.getFullYear()) * 12 + (now.getMonth() - regDate.getMonth());
@@ -172,7 +219,7 @@
                 });
 
                 const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
-                new Chart(ctxMonthly, {
+                monthlyChart = new Chart(ctxMonthly, {
                     type: 'bar',
                     data: {
                         labels: months,
@@ -182,19 +229,29 @@
                             backgroundColor: 'rgba(107, 142, 35, 0.7)'
                         }]
                     },
-                    options: { 
-                        responsive: true, 
+                    options: {
+                        responsive: true,
                         maintainAspectRatio: true,
                         scales: { y: { beginAtZero: true, stepSize: 1 } }
                     }
                 });
-
-            } catch (error) {
-                alert('خطأ في تحميل البيانات: ' + error.message);
             }
         }
 
-        loadReport();
+        function filterBeneficiaries() {
+            const search = document.getElementById('searchBeneficiaries').value.toLowerCase();
+            const filtered = allBeneficiaries.filter(b => 
+                b.name.toLowerCase().includes(search) || 
+                b.idNumber.toLowerCase().includes(search)
+            );
+            renderTable(filtered);
+        }
+
+        document.getElementById('searchBeneficiaries').addEventListener('input', filterBeneficiaries);
+
+        function printReport() {
+            window.print();
+        }
     </script>
 </body>
 </html>

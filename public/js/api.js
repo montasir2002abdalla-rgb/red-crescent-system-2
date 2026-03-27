@@ -1,9 +1,6 @@
-
-
 async function handleResponse(response) {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-        // قد يكون الخطأ 404 أو 500 مع صفحة HTML
         const text = await response.text();
         console.error('Response is not JSON:', text.substring(0, 200));
         throw new Error(`خطأ في الخادم (${response.status}) - تأكد من اتصالك بالخادم`);
@@ -12,6 +9,7 @@ async function handleResponse(response) {
     if (!response.ok) throw new Error(data.error || 'حدث خطأ');
     return data;
 }
+
 // ==================== دوال المصادقة (Auth) ====================
 async function login(employeeId, password) {
     const res = await fetch('/api/auth/login', {
@@ -96,9 +94,17 @@ async function deleteUser(userId) {
     return handleResponse(res);
 }
 
-// (احتفاظ بالاسم السابق للتوافق)
-async function deleteUserById(id) {
-    return deleteUser(id);
+async function updateUser(id, data) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    return handleResponse(res);
 }
 
 // ==================== دوال المخزون (Inventory) ====================
@@ -155,7 +161,6 @@ async function getDonations() {
 }
 
 async function getUserDonations() {
-    // نفس getDonations حالياً، لكن يمكن تخصيصها لاحقاً
     return getDonations();
 }
 
@@ -396,20 +401,8 @@ async function deleteHealthRecord(id) {
     });
     return handleResponse(res);
 }
-async function updateUser(id, data) {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
-    return handleResponse(res);
-}
-window.updateUser = updateUser;
-// ==================== دوال الشكاوى والتنبيهات (Complaints & Notifications) ====================
+
+// ==================== دوال الشكاوى والتنبيهات (Complaints) ====================
 async function getComplaints() {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/complaints', {
@@ -431,6 +424,24 @@ async function createComplaint(data) {
     return handleResponse(res);
 }
 
+async function markComplaintAsRead(id) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/complaints/read/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return handleResponse(res);
+}
+
+async function deleteComplaint(id) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/complaints/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return handleResponse(res);
+}
+
 // ==================== دوال الإحصائيات (Stats) ====================
 async function getStats() {
     const token = localStorage.getItem('token');
@@ -439,7 +450,46 @@ async function getStats() {
     });
     return handleResponse(res);
 }
+async function updateFinancialTransaction(id, data) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/financial-transactions/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+}
 
+async function deleteFinancialTransaction(id) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/financial-transactions/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return handleResponse(res);
+}
+// في نهاية api.js، أضف إذا لم تكن موجودة:
+async function createExpense(data) {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+}
+
+// تأكد من وجود الدوال التالية أيضاً:
+window.createExpense = createExpense;
+
+window.updateFinancialTransaction = updateFinancialTransaction;
+window.deleteFinancialTransaction = deleteFinancialTransaction;
 // ==================== تصدير الدوال إلى النطاق العام ====================
 window.login = login;
 window.register = register;
@@ -451,7 +501,7 @@ window.getActiveUsers = getActiveUsers;
 window.approveUser = approveUser;
 window.rejectUser = rejectUser;
 window.deleteUser = deleteUser;
-window.deleteUserById = deleteUserById; // للتوافق
+window.updateUser = updateUser;
 
 window.getInventory = getInventory;
 window.addInventoryItem = addInventoryItem;
@@ -487,8 +537,10 @@ window.getHealthRecords = getHealthRecords;
 window.createHealthRecord = createHealthRecord;
 window.updateHealthRecord = updateHealthRecord;
 window.deleteHealthRecord = deleteHealthRecord;
-window.updateUser = updateUser;
+
 window.getComplaints = getComplaints;
 window.createComplaint = createComplaint;
+window.markComplaintAsRead = markComplaintAsRead;
+window.deleteComplaint = deleteComplaint;
 
 window.getStats = getStats;

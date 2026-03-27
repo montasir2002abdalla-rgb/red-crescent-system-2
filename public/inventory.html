@@ -33,55 +33,59 @@
             <div id="itemsTab" class="tab-content active">
                 <h3>المواد المخزنية</h3>
                 <button class="btn btn-primary" onclick="showAddItemModal()"><i class="fas fa-plus"></i> إضافة مادة</button>
-                <table class="data-table" id="inventoryTable">
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>التصنيف</th>
-                            <th>الكمية</th>
-                            <th>الوحدة</th>
-                            <th>الحد الأدنى</th>
-                            <th>آخر تحديث</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>التصنيف</th>
+                                <th>الكمية</th>
+                                <th>الوحدة</th>
+                                <th>الحد الأدنى</th>
+                                <th>آخر تحديث</th>
+                                <th>إجراءات</th>
+                            </thead>
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
             </div>
             <div id="medicalTab" class="tab-content">
                 <h3><i class="fas fa-pills"></i> الأدوية والمواد الصحية</h3>
                 <button class="btn btn-primary" onclick="showAddItemModal()"><i class="fas fa-plus"></i> إضافة صنف صحي</button>
-                <table class="data-table" id="medicalTable">
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>التصنيف الفرعي</th>
-                            <th>الكمية</th>
-                            <th>الوحدة</th>
-                            <th>تاريخ انتهاء الصلاحية</th>
-                            <th>الحد الأدنى</th>
-                            <th>آخر تحديث</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="medicalBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="medicalTable">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>التصنيف الفرعي</th>
+                                <th>الكمية</th>
+                                <th>الوحدة</th>
+                                <th>تاريخ انتهاء الصلاحية</th>
+                                <th>الحد الأدنى</th>
+                                <th>آخر تحديث</th>
+                                <th>إجراءات</th>
+                            </thead>
+                        <tbody id="medicalBody"></tbody>
+                    </table>
+                </div>
             </div>
             <div id="financialTab" class="tab-content">
                 <h3>المعاملات المالية</h3>
                 <button class="btn btn-primary" onclick="showExpenseModal()"><i class="fas fa-minus-circle"></i> تسجيل صرف</button>
-                <table class="data-table" id="financialTable">
-                    <thead>
-                        <tr>
-                            <th>المبلغ</th>
-                            <th>النوع</th>
-                            <th>الوصف</th>
-                            <th>المتبرع</th>
-                            <th>التاريخ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="financialBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="financialTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>النوع</th>
+                                <th>الوصف</th>
+                                <th>المتبرع/المسؤول</th>
+                                <th>المستفيد</th>
+                                <th>التاريخ</th>
+                            </thead>
+                        <tbody id="financialBody"></tbody>
+                    </table>
+                </div>
                 <div class="total-funds" style="margin-top:20px; font-size:1.2rem;">
                     <strong>إجمالي الأموال المتاحة: </strong>
                     <span id="totalFunds">0</span> جنيه
@@ -168,6 +172,12 @@
                 <div class="form-group">
                     <label>الوصف</label>
                     <input type="text" id="expenseDesc" required>
+                </div>
+                <div class="form-group">
+                    <label>المستفيد (اختياري)</label>
+                    <select id="expenseBeneficiaryId">
+                        <option value="">بدون مستفيد</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-primary">تسجيل</button>
             </form>
